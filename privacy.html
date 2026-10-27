@@ -2,13 +2,119 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Политика конфиденциальности</title>
-    <style>body { font-family: sans-serif; background: #1a0a2e; color: #fff; padding: 50px; max-width: 800px; margin: auto; }</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Политика конфиденциальности — Yamikoe Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at top, #2d1044 0%, #1a0a2e 40%, #0d0518 100%);
+            color: #f1f1f6;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 90%;
+            margin-top: 60px;
+            margin-bottom: 60px;
+        }
+        h1 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e9d5ff, #c084fc, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .card {
+            background: rgba(30, 15, 50, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        h2 {
+            font-family: 'Unbounded', sans-serif;
+            font-size: 18px;
+            color: #c084fc;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        h2:first-child { margin-top: 0; }
+        p, li {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #d1c4e9;
+            margin-bottom: 15px;
+        }
+        ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        .highlight {
+            color: #e9d5ff;
+            font-weight: 600;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            background: transparent;
+            border: 2px solid #a855f7;
+            color: #c084fc;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            background: rgba(168, 85, 247, 0.15);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+    </style>
 </head>
 <body>
-    <h1>Политика конфиденциальности</h1>
-    <p>Приложение Yamikoe Studio использует Google Drive API только для чтения видео.</p>
-    <p>Мы не передаем ваши данные третьим лицам и не храним их на наших серверах.</p>
-    <p><a href="index.html" style="color: #c084fc;">Вернуться на главную</a></p>
+    <div class="container">
+        <h1>Политика конфиденциальности</h1>
+        
+        <div class="card">
+            <p><span class="highlight">Дата вступления в силу:</span> 27 октября 2026 г.</p>
+            <p>Настоящая Политика конфиденциальности описывает, как приложение <span class="highlight">Yamikoe Studio</span> (далее — «Приложение») собирает, использует и защищает вашу информацию.</p>
+
+            <h2>1. Какую информацию мы собираем</h2>
+            <p>Приложение использует <span class="highlight">Google Drive API</span> для получения доступа к видеофайлам. При входе через Google мы запрашиваем доступ только к чтению файлов (scope: <code>drive.readonly</code>).</p>
+            <p>Мы <span class="highlight">не собираем</span> ваши личные данные (имя, email, пароль) и не сохраняем их на наших серверах. Вся авторизация происходит напрямую через серверы Google.</p>
+
+            <h2>2. Как мы используем информацию</h2>
+            <p>Доступ к Google Drive используется исключительно для:<p>
+            <ul>
+                <li>Воспроизведения видеоконтента в Приложении.</li>
+                <li>Проверки прав доступа к файлам.</li>
+            </ul>
+            <p>Мы <span class="highlight">не передаем</span> ваши данные третьим лицам и не используем их в маркетинговых целях.</p>
+
+            <h2>3. Хранение данных</h2>
+            <p>Токены авторизации хранятся <span class="highlight">локально на вашем устройстве</span> в зашифрованном виде. Вы можете удалить их в любой момент, выйдя из аккаунта Google в настройках Приложения.</p>
+
+            <h2>4. Безопасность</h2>
+            <p>Мы используем стандартные протоколы безопасности OAuth 2.0 и PKCE для защиты процесса авторизации. Однако ни один метод передачи данных через интернет не является на 100% безопасным.</p>
+
+            <h2>5. Ваши права</h2>
+            <p>Вы имеете право в любой момент отозвать доступ Приложения к вашему Google Drive через настройки безопасности вашего Google-аккаунта.</p>
+
+            <h2>6. Контакты</h2>
+            <p>Если у вас есть вопросы по поводу данной Политики, вы можете связаться с нами через наш Telegram-канал: <a href="https://t.me/yamikoestudio" style="color: #c084fc;">@yamikoestudio</a>.</p>
+
+            <a href="index.html" class="back-btn">← Вернуться на главную</a>
+        </div>
+    </div>
 </body>
 </html>
