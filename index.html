@@ -6,8 +6,8 @@
     <title>Yamikoe Studio — Официальный клиент</title>
     <style>
         body {
-            background-color: #11051f;
-            color: #e0d4f5;
+            background-color: #0a001a;
+            color: #e0d0ff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -17,42 +17,62 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            background-image: radial-gradient(circle at 20% 20%, rgba(100, 0, 200, 0.15) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 80%, rgba(150, 0, 255, 0.1) 0%, transparent 50%);
         }
         .logo-svg {
-            width: 80px;
-            height: 100px;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 0 15px rgba(181, 123, 255, 0.6));
+            width: 120px;
+            height: 140px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8));
+            animation: logoPulse 3s infinite alternate;
+        }
+        @keyframes logoPulse {
+            0% { filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.5)); }
+            100% { filter: drop-shadow(0 0 30px rgba(192, 132, 252, 1)); }
         }
         h1 {
-            font-size: 36px;
+            font-family: 'Times New Roman', serif;
+            font-size: 38px;
             margin: 0 0 10px 0;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             text-align: center;
-            color: #d4a5ff;
-            text-shadow: 0 0 20px rgba(212, 165, 255, 0.4);
+            background: linear-gradient(135deg, #d8b4fe, #a855f7, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
         }
         .subtitle {
             font-size: 16px;
-            color: #a07cc5;
+            color: #a78bfa;
             margin-bottom: 40px;
             text-align: center;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
         }
         .card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(181, 123, 255, 0.2);
-            border-radius: 20px;
+            background: rgba(15, 0, 35, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(170, 100, 255, 0.3);
+            border-radius: 24px;
             padding: 40px;
             max-width: 700px;
             width: 100%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 40px rgba(130, 0, 255, 0.3), inset 0 0 60px rgba(100, 0, 200, 0.1);
             box-sizing: border-box;
+            animation: borderPulse 4s infinite alternate;
+        }
+        @keyframes borderPulse {
+            0% { border-color: rgba(170, 100, 255, 0.2); box-shadow: 0 0 30px rgba(130, 0, 255, 0.2); }
+            100% { border-color: rgba(200, 130, 255, 0.6); box-shadow: 0 0 60px rgba(160, 50, 255, 0.5); }
         }
         h2 {
-            color: #b57bff;
+            color: #d8b4fe;
             margin-top: 0;
             font-size: 24px;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+            padding-bottom: 10px;
         }
         p {
             line-height: 1.7;
@@ -69,40 +89,43 @@
         .btn {
             display: block;
             text-align: center;
-            background: linear-gradient(135deg, #b57bff, #7c3aed);
-            color: white;
+            background: linear-gradient(135deg, #7e22ce, #a855f7, #c084fc);
+            color: #0a001a;
             text-decoration: none;
             padding: 16px 30px;
             border-radius: 12px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
-            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
         }
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(181, 123, 255, 0.5);
+            transform: translateY(-3px);
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
+            background: linear-gradient(135deg, #9333ea, #c084fc, #e9d5ff);
         }
         .btn-secondary {
             background: transparent;
-            border: 2px solid #b57bff;
-            color: #b57bff;
+            border: 2px solid #a855f7;
+            color: #c084fc;
+            box-shadow: none;
         }
         .btn-secondary:hover {
-            background: rgba(181, 123, 255, 0.1);
-            box-shadow: none;
+            background: rgba(168, 85, 247, 0.15);
+            color: #e9d5ff;
         }
         .footer {
             margin-top: 40px;
             font-size: 14px;
-            color: #7c6b8f;
+            color: rgba(168, 85, 247, 0.5);
             text-align: center;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
-    <!-- SVG Логотип (вместо "щита") -->
     <svg class="logo-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
