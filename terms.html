@@ -3,81 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Условия использования — Yamikoe Studio</title>
+    <title>Политика конфиденциальности — Yamikoe Studio</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: #11051f;
-            color: #e0d4f5;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.7;
-            padding: 60px 20px;
-            margin: 0;
+            background-color: #0a001a;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            color: #e0d0ff;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
+            align-items: flex-start;
+            padding: 60px 20px;
+            background-image: radial-gradient(circle at 20% 20%, rgba(100, 0, 200, 0.15) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 80%, rgba(150, 0, 255, 0.1) 0%, transparent 50%);
+            overflow-x: hidden;
+        }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle {
+            position: absolute; width: 4px; height: 4px;
+            background: #b066ff; border-radius: 50%; opacity: 0.3;
+            animation: floatParticle 12s infinite linear;
+            box-shadow: 0 0 10px #b066ff, 0 0 20px #8a2be2;
+        }
+        @keyframes floatParticle {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            20% { opacity: 0.6; } 80% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
         }
         .container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 50px;
-            border-radius: 20px;
-            border: 1px solid rgba(181, 123, 255, 0.2);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            box-sizing: border-box;
+            position: relative; z-index: 2;
+            max-width: 900px; width: 100%;
+            background: rgba(15, 0, 35, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(170, 100, 255, 0.3);
+            border-radius: 24px;
+            padding: 50px 45px;
+            box-shadow: 0 0 40px rgba(130, 0, 255, 0.3), inset 0 0 60px rgba(100, 0, 200, 0.1);
+            animation: borderPulse 4s infinite alternate;
+        }
+        @keyframes borderPulse {
+            0% { border-color: rgba(170, 100, 255, 0.2); box-shadow: 0 0 30px rgba(130, 0, 255, 0.2), inset 0 0 60px rgba(100, 0, 200, 0.05); }
+            100% { border-color: rgba(200, 130, 255, 0.6); box-shadow: 0 0 60px rgba(160, 50, 255, 0.5), inset 0 0 80px rgba(140, 0, 255, 0.15); }
         }
         h1 {
-            color: #b57bff;
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 32px;
-            text-shadow: 0 0 20px rgba(181, 123, 255, 0.4);
+            font-size: 2rem; text-align: center;
+            background: linear-gradient(135deg, #d8b4fe, #a855f7, #c084fc);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+            margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;
         }
-        h2 {
-            color: #d4a5ff;
-            margin-top: 40px;
-            font-size: 22px;
-            border-bottom: 1px solid rgba(181, 123, 255, 0.2);
-            padding-bottom: 10px;
+        .subtitle {
+            text-align: center; color: #a78bfa; font-size: 1.1rem;
+            letter-spacing: 4px; margin-bottom: 40px; opacity: 0.8;
         }
-        p {
-            font-size: 16px;
-            margin-bottom: 20px;
-            color: #d1c4e9;
+        .section { margin-bottom: 30px; }
+        .section-title {
+            font-size: 1.3rem; color: #c084fc; margin-bottom: 15px;
+            padding-bottom: 8px; border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+            display: flex; align-items: center; gap: 10px;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
         }
-        a {
-            color: #b57bff;
-            text-decoration: none;
-            font-weight: 600;
+        .section-title::before { content: '◆'; color: #a855f7; font-size: 1rem; }
+        .section p, .section li { font-size: 1rem; line-height: 1.7; color: #d1c4e9; margin-bottom: 10px; }
+        .section ul { list-style: none; padding-left: 5px; }
+        .section ul li { position: relative; padding-left: 25px; margin-bottom: 12px; }
+        .section ul li::before { content: '▹'; position: absolute; left: 0; color: #a855f7; font-weight: bold; text-shadow: 0 0 8px #a855f7; }
+        .highlight { color: #e9d5ff; font-weight: 600; text-shadow: 0 0 8px rgba(192, 132, 252, 0.6); }
+        .btn {
+            display: block; width: 100%; padding: 16px; margin-top: 30px;
+            border: none; border-radius: 12px; font-size: 1.15rem; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
+            transition: all 0.3s ease; text-decoration: none; text-align: center;
         }
-        a:hover {
-            text-decoration: underline;
+        .btn-primary {
+            background: linear-gradient(135deg, #7e22ce, #a855f7, #c084fc);
+            color: #0a001a; box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
         }
-        .footer-link {
-            display: block;
-            text-align: center;
-            margin-top: 50px;
-            font-size: 16px;
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.9), 0 0 80px rgba(192, 132, 252, 0.5);
+            background: linear-gradient(135deg, #9333ea, #c084fc, #e9d5ff);
+        }
+        .footer {
+            text-align: center; margin-top: 40px;
+            font-size: 0.8rem; color: rgba(168, 85, 247, 0.5);
+            letter-spacing: 1px;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 30px 20px; }
+            h1 { font-size: 1.5rem; }
+            .subtitle { font-size: 0.9rem; letter-spacing: 2px; }
         }
     </style>
 </head>
 <body>
+
+    <div class="particles" id="particles"></div>
+
     <div class="container">
-        <h1>Условия использования</h1>
-        <p>Добро пожаловать в Yamikoe Studio. Используя наше приложение, вы соглашаетесь с данными условиями.</p>
+        <h1>Политика конфиденциальности</h1>
+        <div class="subtitle">YAMIKOE STUDIO</div>
 
-        <h2>1. Использование приложения</h2>
-        <p>Yamikoe Studio предоставляется для личного, некоммерческого просмотра аниме-контента. Вы обязуетесь не использовать приложение для распространения незаконного контента или нарушения авторских прав.</p>
+        <div class="section">
+            <p><strong>Дата вступления в силу:</strong> 27 октября 2026 г.</p>
+            <p>Настоящая Политика конфиденциальности описывает, как приложение <span class="highlight">Yamikoe Studio</span> (далее — «Приложение») собирает, использует и защищает вашу информацию.</p>
+        </div>
 
-        <h2>2. Доступ к Google Drive</h2>
-        <p>Наше приложение использует официальный API Google Drive (только для чтения) исключительно для доступа к видеофайлам, необходимым для работы плеера. Мы не собираем, не храним и не передаем третьим лицам ваши личные данные или содержимое вашего Google Диска.</p>
+        <div class="section">
+            <div class="section-title">1. Какую информацию мы собираем</div>
+            <p>Приложение использует Google Drive API для получения доступа к видеофайлам. При входе через Google мы запрашиваем доступ только к чтению файлов (scope: <span class="highlight">drive.readonly</span>).</p>
+            <p>Мы не собираем ваши личные данные (имя, email, пароль) и не сохраняем их на наших серверах. Вся авторизация происходит напрямую через серверы Google.</p>
+        </div>
 
-        <h2>3. Отказ от ответственности</h2>
-        <p>Приложение предоставляется «как есть». Мы не гарантируем бесперебойную работу и не несем ответственности за возможные сбои или потерю данных.</p>
+        <div class="section">
+            <div class="section-title">2. Как мы используем информацию</div>
+            <p>Доступ к Google Drive используется исключительно для:</p>
+            <ul>
+                <li>Воспроизведения видеоконтента в Приложении.</li>
+                <li>Проверки прав доступа к файлам.</li>
+            </ul>
+            <p>Мы не передаем ваши данные третьим лицам и не используем их в маркетинговых целях.</p>
+        </div>
 
-        <h2>4. Изменения условий</h2>
-        <p>Мы оставляем за собой право изменять данные условия. Актуальная версия всегда доступна на этой странице.</p>
+        <div class="section">
+            <div class="section-title">3. Хранение данных</div>
+            <p>Токены авторизации хранятся <span class="highlight">локально на вашем устройстве</span> в зашифрованном виде. Вы можете удалить их в любой момент, выйдя из аккаунта Google в настройках Приложения.</p>
+        </div>
 
-        <a href="index.html" class="footer-link">← Вернуться на главную</a>
+        <div class="section">
+            <div class="section-title">4. Безопасность</div>
+            <p>Мы используем стандартные протоколы безопасности OAuth 2.0 и PKCE для защиты процесса авторизации. Однако ни один метод передачи данных через интернет не является на 100% безопасным.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">5. Ваши права</div>
+            <p>Вы имеете право в любой момент отозвать доступ Приложения к вашему Google Диску через настройки безопасности вашего Google-аккаунта.</p>
+        </div>
+
+        <a href="index.html" class="btn btn-primary">← Вернуться на главную</a>
+
+        <div class="footer">YAMIKOE STUDIO © 2026 — Все права защищены</div>
     </div>
+
+    <script>
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 40; i++) {
+            const p = document.createElement('div');
+            p.classList.add('particle');
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 12 + 's';
+            p.style.animationDuration = (8 + Math.random() * 8) + 's';
+            p.style.width = (2 + Math.random() * 4) + 'px';
+            p.style.height = p.style.width;
+            p.style.opacity = 0.1 + Math.random() * 0.4;
+            particlesContainer.appendChild(p);
+        }
+    </script>
 </body>
 </html>
