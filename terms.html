@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Политика конфиденциальности — Yamikoe Studio</title>
+    <title>Условия использования — Yamikoe Studio</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -65,11 +65,13 @@
             text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
         }
         .section-title::before { content: '◆'; color: #a855f7; font-size: 1rem; }
-        .section p, .section li { font-size: 1rem; line-height: 1.7; color: #d1c4e9; margin-bottom: 10px; }
-        .section ul { list-style: none; padding-left: 5px; }
-        .section ul li { position: relative; padding-left: 25px; margin-bottom: 12px; }
-        .section ul li::before { content: '▹'; position: absolute; left: 0; color: #a855f7; font-weight: bold; text-shadow: 0 0 8px #a855f7; }
-        .highlight { color: #e9d5ff; font-weight: 600; text-shadow: 0 0 8px rgba(192, 132, 252, 0.6); }
+        p { font-size: 1rem; line-height: 1.7; color: #d1c4e9; margin-bottom: 10px; }
+        .warning-box {
+            background: rgba(120, 0, 220, 0.15); border-left: 3px solid #a855f7;
+            padding: 15px 20px; border-radius: 0 12px 12px 0; margin: 20px 0;
+            font-size: 0.95rem; color: #e0d0ff;
+            box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.1);
+        }
         .btn {
             display: block; width: 100%; padding: 16px; margin-top: 30px;
             border: none; border-radius: 12px; font-size: 1.15rem; font-weight: 700;
@@ -102,43 +104,33 @@
     <div class="particles" id="particles"></div>
 
     <div class="container">
-        <h1>Политика конфиденциальности</h1>
+        <h1>Условия использования</h1>
         <div class="subtitle">YAMIKOE STUDIO</div>
 
         <div class="section">
-            <p><strong>Дата вступления в силу:</strong> 27 октября 2026 г.</p>
-            <p>Настоящая Политика конфиденциальности описывает, как приложение <span class="highlight">Yamikoe Studio</span> (далее — «Приложение») собирает, использует и защищает вашу информацию.</p>
+            <p>Добро пожаловать в Yamikoe Studio. Используя наше приложение, вы соглашаетесь с данными условиями.</p>
         </div>
 
         <div class="section">
-            <div class="section-title">1. Какую информацию мы собираем</div>
-            <p>Приложение использует Google Drive API для получения доступа к видеофайлам. При входе через Google мы запрашиваем доступ только к чтению файлов (scope: <span class="highlight">drive.readonly</span>).</p>
-            <p>Мы не собираем ваши личные данные (имя, email, пароль) и не сохраняем их на наших серверах. Вся авторизация происходит напрямую через серверы Google.</p>
+            <div class="section-title">1. Использование приложения</div>
+            <p>Yamikoe Studio предоставляется для личного, некоммерческого просмотра аниме-контента. Вы обязуетесь не использовать приложение для распространения незаконного контента или нарушения авторских прав.</p>
         </div>
 
         <div class="section">
-            <div class="section-title">2. Как мы используем информацию</div>
-            <p>Доступ к Google Drive используется исключительно для:</p>
-            <ul>
-                <li>Воспроизведения видеоконтента в Приложении.</li>
-                <li>Проверки прав доступа к файлам.</li>
-            </ul>
-            <p>Мы не передаем ваши данные третьим лицам и не используем их в маркетинговых целях.</p>
+            <div class="section-title">2. Доступ к Google Drive</div>
+            <p>Наше приложение использует официальный API Google Drive (только для чтения) исключительно для доступа к видеофайлам, необходимым для работы плеера. Мы не собираем, не храним и не передаем третьим лицам ваши личные данные или содержимое вашего Google Диска.</p>
         </div>
 
         <div class="section">
-            <div class="section-title">3. Хранение данных</div>
-            <p>Токены авторизации хранятся <span class="highlight">локально на вашем устройстве</span> в зашифрованном виде. Вы можете удалить их в любой момент, выйдя из аккаунта Google в настройках Приложения.</p>
+            <div class="section-title">3. Отказ от ответственности</div>
+            <div class="warning-box">
+                Приложение предоставляется «как есть». Мы не гарантируем бесперебойную работу и не несем ответственности за возможные сбои или потерю данных.
+            </div>
         </div>
 
         <div class="section">
-            <div class="section-title">4. Безопасность</div>
-            <p>Мы используем стандартные протоколы безопасности OAuth 2.0 и PKCE для защиты процесса авторизации. Однако ни один метод передачи данных через интернет не является на 100% безопасным.</p>
-        </div>
-
-        <div class="section">
-            <div class="section-title">5. Ваши права</div>
-            <p>Вы имеете право в любой момент отозвать доступ Приложения к вашему Google Диску через настройки безопасности вашего Google-аккаунта.</p>
+            <div class="section-title">4. Изменения условий</div>
+            <p>Мы оставляем за собой право изменять данные условия. Актуальная версия всегда доступна на этой странице.</p>
         </div>
 
         <a href="index.html" class="btn btn-primary">← Вернуться на главную</a>
