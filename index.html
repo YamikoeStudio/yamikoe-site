@@ -18,33 +18,35 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        .logo {
-            font-size: 48px;
-            color: #b57bff;
+        .logo-svg {
+            width: 80px;
+            height: 100px;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(181, 123, 255, 0.5);
+            filter: drop-shadow(0 0 15px rgba(181, 123, 255, 0.6));
         }
         h1 {
             font-size: 36px;
             margin: 0 0 10px 0;
-            letter-spacing: 2px;
+            letter-spacing: 4px;
             text-align: center;
             color: #d4a5ff;
+            text-shadow: 0 0 20px rgba(212, 165, 255, 0.4);
         }
         .subtitle {
             font-size: 16px;
             color: #a07cc5;
             margin-bottom: 40px;
             text-align: center;
+            letter-spacing: 1px;
         }
         .card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(181, 123, 255, 0.2);
             border-radius: 20px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             box-sizing: border-box;
         }
         h2 {
@@ -53,8 +55,9 @@
             font-size: 24px;
         }
         p {
-            line-height: 1.6;
-            color: #c9b8e0;
+            line-height: 1.7;
+            color: #d1c4e9;
+            font-size: 16px;
             margin-bottom: 20px;
         }
         .btn-group {
@@ -69,18 +72,21 @@
             background: linear-gradient(135deg, #b57bff, #7c3aed);
             color: white;
             text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-weight: bold;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
             transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
         }
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(181, 123, 255, 0.4);
+            box-shadow: 0 5px 20px rgba(181, 123, 255, 0.5);
         }
         .btn-secondary {
             background: transparent;
-            border: 1px solid #b57bff;
+            border: 2px solid #b57bff;
             color: #b57bff;
         }
         .btn-secondary:hover {
@@ -90,13 +96,36 @@
         .footer {
             margin-top: 40px;
             font-size: 14px;
-            color: #6b5b7b;
+            color: #7c6b8f;
             text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="logo">⧨</div>
+    <!-- SVG Логотип (вместо "щита") -->
+    <svg class="logo-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#b82ce1" />
+                <stop offset="100%" stop-color="#6a0dad" />
+            </linearGradient>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#a82ee6" flood-opacity="0.8" />
+            </filter>
+        </defs>
+        <style>
+            .logo-path {
+                stroke: url(#purpleGrad);
+                stroke-width: 10;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
+                filter: url(#glow);
+            }
+        </style>
+        <path class="logo-path" d="M 80,75 L 150,130 L 220,75 M 75,130 L 225,130 L 150,200 Z M 150,200 L 150,240" />
+    </svg>
+
     <h1>YAMIKOE STUDIO</h1>
     <div class="subtitle">Официальный клиент для просмотра аниме</div>
 
