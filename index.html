@@ -3,120 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yamikoe Studio — Официальный сайт</title>
-    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <title>Yamikoe Studio — Официальный клиент</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: radial-gradient(circle at top, #2d1044 0%, #1a0a2e 40%, #0d0518 100%);
-            color: #f1f1f6;
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
+            background-color: #11051f;
+            color: #e0d4f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-        .container {
-            max-width: 800px;
-            width: 90%;
-            margin-top: 80px;
-            text-align: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .logo {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.6));
+            font-size: 48px;
+            color: #b57bff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(181, 123, 255, 0.5);
         }
         h1 {
-            font-family: 'Unbounded', sans-serif;
-            font-size: 42px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #e9d5ff, #c084fc, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            font-size: 36px;
+            margin: 0 0 10px 0;
             letter-spacing: 2px;
+            text-align: center;
+            color: #d4a5ff;
         }
         .subtitle {
             font-size: 16px;
-            color: #a78bfa;
+            color: #a07cc5;
             margin-bottom: 40px;
-            letter-spacing: 1px;
+            text-align: center;
         }
         .card {
-            background: rgba(30, 15, 50, 0.6);
-            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(181, 123, 255, 0.2);
             border-radius: 20px;
             padding: 40px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            text-align: left;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
         }
-        .card h2 {
-            font-family: 'Unbounded', sans-serif;
-            font-size: 20px;
-            color: #c084fc;
-            margin-bottom: 15px;
+        h2 {
+            color: #b57bff;
+            margin-top: 0;
+            font-size: 24px;
         }
-        .card p {
-            font-size: 16px;
+        p {
             line-height: 1.6;
-            color: #d1c4e9;
+            color: #c9b8e0;
             margin-bottom: 20px;
         }
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
         .btn {
-            display: inline-block;
-            background: linear-gradient(135deg, #a855f7, #7c3aed);
-            color: #fff;
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, #b57bff, #7c3aed);
+            color: white;
             text-decoration: none;
-            padding: 14px 30px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.6);
+            box-shadow: 0 5px 15px rgba(181, 123, 255, 0.4);
         }
-        footer {
-            margin-top: auto;
-            padding: 30px;
-            color: #6b7280;
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #b57bff;
+            color: #b57bff;
+        }
+        .btn-secondary:hover {
+            background: rgba(181, 123, 255, 0.1);
+            box-shadow: none;
+        }
+        .footer {
+            margin-top: 40px;
             font-size: 14px;
+            color: #6b5b7b;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Твой логотип в виде SVG -->
-        <svg class="logo" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#c084fc" />
-                    <stop offset="100%" stop-color="#7c3aed" />
-                </linearGradient>
-            </defs>
-            <path d="M 90,70 L 150,120 L 210,70 M 80,120 L 220,120 L 150,200 Z M 150,200 L 150,250" 
-                  stroke="url(#grad)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-        </svg>
+    <div class="logo">⧨</div>
+    <h1>YAMIKOE STUDIO</h1>
+    <div class="subtitle">Официальный клиент для просмотра аниме</div>
 
-        <h1>YAMIKOE STUDIO</h1>
-        <div class="subtitle">Официальный клиент для просмотра аниме</div>
-
-        <div class="card">
-            <h2>О приложении</h2>
-            <p>Yamikoe Studio — это десктопное приложение для удобного просмотра аниме с озвучкой нашей студии. Мы используем современные технологии для обеспечения высокого качества видео и звука.</p>
-            <p>Для доступа к видеофайлам приложение использует официальный Google Drive API (только для чтения). Мы не собираем ваши личные данные и не передаем их третьим лицам.</p>
-            
+    <div class="card">
+        <h2>О приложении</h2>
+        <p>Yamikoe Studio — это десктопное приложение для удобного просмотра аниме с озвучкой нашей студии. Мы используем современные технологии для обеспечения высокого качества видео и звука.</p>
+        <p>Для доступа к видеофайлам приложение использует официальный Google Drive API (только для чтения). Мы не собираем ваши личные данные и не передаем их третьим лицам.</p>
+        
+        <div class="btn-group">
             <a href="privacy.html" class="btn">Политика конфиденциальности →</a>
+            <a href="terms.html" class="btn btn-secondary">Условия использования →</a>
         </div>
     </div>
 
-    <footer>
-        &copy; 2026 Yamikoe Studio. Все права защищены.
-    </footer>
+    <div class="footer">
+        © 2026 Yamikoe Studio. Все права защищены.
+    </div>
 </body>
 </html>
