@@ -3,168 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yamikoe Studio — Официальный клиент</title>
-    <style>
-        body {
-            background-color: #0a001a;
-            color: #e0d0ff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            background-image: radial-gradient(circle at 20% 20%, rgba(100, 0, 200, 0.15) 0%, transparent 50%),
-                              radial-gradient(circle at 80% 80%, rgba(150, 0, 255, 0.1) 0%, transparent 50%);
-        }
-        .logo-svg {
-            width: 120px;
-            height: 140px;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.8));
-            animation: logoPulse 3s infinite alternate;
-        }
-        @keyframes logoPulse {
-            0% { filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.5)); }
-            100% { filter: drop-shadow(0 0 30px rgba(192, 132, 252, 1)); }
-        }
-        h1 {
-            font-family: 'Times New Roman', serif;
-            font-size: 38px;
-            margin: 0 0 10px 0;
-            letter-spacing: 6px;
-            text-align: center;
-            background: linear-gradient(135deg, #d8b4fe, #a855f7, #c084fc);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
-        }
-        .subtitle {
-            font-size: 16px;
-            color: #a78bfa;
-            margin-bottom: 40px;
-            text-align: center;
-            letter-spacing: 2px;
-        }
-        .card {
-            background: rgba(15, 0, 35, 0.75);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(170, 100, 255, 0.3);
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 700px;
-            width: 100%;
-            box-shadow: 0 0 40px rgba(130, 0, 255, 0.3), inset 0 0 60px rgba(100, 0, 200, 0.1);
-            box-sizing: border-box;
-            animation: borderPulse 4s infinite alternate;
-        }
-        @keyframes borderPulse {
-            0% { border-color: rgba(170, 100, 255, 0.2); box-shadow: 0 0 30px rgba(130, 0, 255, 0.2); }
-            100% { border-color: rgba(200, 130, 255, 0.6); box-shadow: 0 0 60px rgba(160, 50, 255, 0.5); }
-        }
-        h2 {
-            color: #d8b4fe;
-            margin-top: 0;
-            font-size: 24px;
-            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
-            padding-bottom: 10px;
-        }
-        p {
-            line-height: 1.7;
-            color: #d1c4e9;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        .btn {
-            display: block;
-            text-align: center;
-            background: linear-gradient(135deg, #7e22ce, #a855f7, #c084fc);
-            color: #0a001a;
-            text-decoration: none;
-            padding: 16px 30px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-        }
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
-            background: linear-gradient(135deg, #9333ea, #c084fc, #e9d5ff);
-        }
-        .btn-secondary {
-            background: transparent;
-            border: 2px solid #a855f7;
-            color: #c084fc;
-            box-shadow: none;
-        }
-        .btn-secondary:hover {
-            background: rgba(168, 85, 247, 0.15);
-            color: #e9d5ff;
-        }
-        .footer {
-            margin-top: 40px;
-            font-size: 14px;
-            color: rgba(168, 85, 247, 0.5);
-            text-align: center;
-            letter-spacing: 1px;
-        }
-    </style>
+    <title>Yamikoe Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
-<body>
-    <svg class="logo-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#b82ce1" />
-                <stop offset="100%" stop-color="#6a0dad" />
-            </linearGradient>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#a82ee6" flood-opacity="0.8" />
-            </filter>
-        </defs>
-        <style>
-            .logo-path {
-                stroke: url(#purpleGrad);
-                stroke-width: 10;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-                fill: none;
-                filter: url(#glow);
-            }
-        </style>
-        <path class="logo-path" d="M 80,75 L 150,130 L 220,75 M 75,130 L 225,130 L 150,200 Z M 150,200 L 150,240" />
-    </svg>
+<body data-theme="purple">
 
-    <h1>YAMIKOE STUDIO</h1>
-    <div class="subtitle">Официальный клиент для просмотра аниме</div>
-
-    <div class="card">
-        <h2>О приложении</h2>
-        <p>Yamikoe Studio — это десктопное приложение для удобного просмотра аниме с озвучкой нашей студии. Мы используем современные технологии для обеспечения высокого качества видео и звука.</p>
-        <p>Для доступа к видеофайлам приложение использует официальный Google Drive API (только для чтения). Мы не собираем ваши личные данные и не передаем их третьим лицам.</p>
-        
-        <div class="btn-group">
-            <a href="privacy.html" class="btn">Политика конфиденциальности →</a>
-            <a href="terms.html" class="btn btn-secondary">Условия использования →</a>
+    <div id="splash-screen">
+        <div class="splash-content">
+            <svg class="splash-logo" viewBox="0 0 300 300" width="180" height="180" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="splashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#d36bff" />
+                        <stop offset="100%" stop-color="#7a1fc0" />
+                    </linearGradient>
+                    <filter id="splashGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#a855f7" flood-opacity="0.6" />
+                    </filter>
+                </defs>
+                <path class="logo-draw" d="M 90,70 L 150,120 L 210,70 M 80,120 L 220,120 L 150,200 Z M 150,200 L 150,250" stroke="url(#splashGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#splashGlow)" />
+            </svg>
+            <div class="splash-text-wrapper">
+                <div class="splash-brand">YAMIKOE</div>
+                <div class="splash-sub">STUDIO</div>
+            </div>
+            <div class="splash-progress">
+                <div class="splash-progress-fill"></div>
+            </div>
         </div>
     </div>
 
-    <div class="footer">
-        © 2026 Yamikoe Studio. Все права защищены.
+    <header class="navbar">
+        <div class="logo" onclick="toggleSocialMenu(event)">
+            <svg class="logo-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#c084fc" />
+                        <stop offset="100%" stop-color="#7c3aed" />
+                    </linearGradient>
+                    <filter id="logoGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#a855f7" flood-opacity="0.8" />
+                    </filter>
+                </defs>
+                <path class="logo-path" d="M 90,70 L 150,120 L 210,70 M 80,120 L 220,120 L 150,200 Z M 150,200 L 150,250" stroke="url(#logoGrad)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#logoGlow)" />
+            </svg>
+            <span class="logo-text">YAMIKOE STUDIO</span>
+            
+            <div id="social-menu" class="social-popup" onclick="event.stopPropagation()">
+                <a href="https://t.me/yamikoestudio" target="_blank" class="social-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 4.5L2.5 12l7 2.5 3 7 9-17z"/></svg>
+                    Telegram
+                </a>
+                <a href="https://youtube.com/@yamikoestudio" target="_blank" class="social-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+                    YouTube
+                </a>
+                <a href="https://tiktok.com/@yamikoestudio" target="_blank" class="social-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+                    TikTok
+                </a>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button id="btn-catalog" class="nav-btn active" onclick="switchTab('catalog')">Главная</button>
+            <button id="btn-schedule" class="nav-btn" onclick="switchTab('schedule')">Расписание</button>
+            <button id="btn-all" class="nav-btn" onclick="switchTab('all')">Все релизы</button>
+            <button id="btn-favorites" class="nav-btn" onclick="switchTab('favorites')">Избранное</button>
+            <button id="btn-history" class="nav-btn" onclick="switchTab('history')">История</button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Поиск аниме или актёра..." 
+                   oninput="searchAnime()" 
+                   onkeydown="handleSearchKey(event)"
+                   onfocus="showSearchHistory()"
+                   onblur="setTimeout(hideSearchHistory, 200)"
+                   autocomplete="off">
+            <div id="search-history" class="search-history" style="display: none;"></div>
+            <button class="icon-btn" onclick="handleRefresh()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+            </button>
+            <button class="icon-btn" onclick="openSettings()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="tab-catalog" class="tab-content">
+            <h2 class="section-title" id="continue-watching-title" style="display: none;">Продолжить просмотр</h2>
+            <div id="continue-watching-grid" class="anime-grid" style="display: none; margin-bottom: 30px;"></div>
+
+            <h2 class="section-title">Недавно озвучено</h2>
+            <div id="recent-releases-grid" class="anime-grid"></div>
+            <h2 class="section-title" style="margin-top: 40px;">Рекомендуем к просмотру</h2>
+            <div id="random-anime-list" class="list-vertical"></div>
+        </section>
+
+        <section id="tab-schedule" class="tab-content" style="display: none;">
+            <h2 class="section-title">График выхода серий</h2>
+            <div id="schedule-box"></div>
+        </section>
+
+        <section id="tab-all" class="tab-content" style="display: none;">
+            <h2 class="section-title">Все озвученные релизы</h2>
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label>Жанр:</label>
+                    <div class="custom-select" id="select-genre">
+                        <div class="custom-select-trigger"><span>Все жанры</span><span class="arrow">▼</span></div>
+                        <div class="custom-options"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Год:</label>
+                    <div class="custom-select" id="select-year">
+                        <div class="custom-select-trigger"><span>Все годы</span><span class="arrow">▼</span></div>
+                        <div class="custom-options"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Озвучка:</label>
+                    <div class="custom-select" id="select-voice">
+                        <div class="custom-select-trigger"><span>Все</span><span class="arrow">▼</span></div>
+                        <div class="custom-options">
+                            <div class="custom-option selected" data-value="">Все</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>Сортировка:</label>
+                    <div class="custom-select" id="select-sort">
+                        <div class="custom-select-trigger"><span>По рейтингу</span><span class="arrow">▼</span></div>
+                        <div class="custom-options">
+                            <div class="custom-option selected" data-value="rating">По рейтингу</div>
+                            <div class="custom-option" data-value="name">По названию</div>
+                            <div class="custom-option" data-value="year">По году</div>
+                            <div class="custom-option" data-value="episodes">По кол-ву серий</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="filter-reset" onclick="resetFilters()">Сбросить</button>
+                <button class="random-btn" onclick="openRandomAnime()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2 L20.5 7 V17 L12 22 L3.5 17 V7 Z" />
+                        <path d="M3.5 7 L12 12 L20.5 7" />
+                        <path d="M12 12 V22" />
+                        <circle cx="12" cy="7" r="0.9" fill="currentColor" stroke="none" />
+                        <circle cx="6.5" cy="12" r="0.9" fill="currentColor" stroke="none" />
+                        <circle cx="9.5" cy="17" r="0.9" fill="currentColor" stroke="none" />
+                        <circle cx="17.5" cy="12" r="0.9" fill="currentColor" stroke="none" />
+                        <circle cx="16" cy="14.5" r="0.9" fill="currentColor" stroke="none" />
+                        <circle cx="14.5" cy="17" r="0.9" fill="currentColor" stroke="none" />
+                    </svg>
+                </button>
+            </div>
+            <div id="all-releases-grid" class="anime-grid"></div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="btn-load-more" class="load-more-btn" onclick="loadMoreReleases()" style="display: none;">Показать ещё ▼</button>
+            </div>
+        </section>
+
+        <section id="tab-favorites" class="tab-content" style="display: none;">
+            <h2 class="section-title">Избранное</h2>
+            <div id="favorites-grid" class="anime-grid"></div>
+        </section>
+
+        <section id="tab-history" class="tab-content" style="display: none;">
+            <h2 class="section-title">История просмотра</h2>
+            <div class="history-controls">
+                <button class="history-btn" onclick="clearAnimeHistory()">Очистить историю</button>
+                <button class="history-btn" onclick="resetAllWatched()">Сбросить просмотренное</button>
+                <button class="history-btn" id="btn-toggle-delete" onclick="toggleDeleteMode()">Режим удаления</button>
+            </div>
+            <div id="history-grid" class="anime-grid"></div>
+        </section>
+    </main>
+
+    <div id="settings-modal" class="custom-modal" style="display: none;">
+        <div class="settings-modal-content">
+            <div class="settings-header">
+                <h2>Настройки</h2>
+                <span class="close-btn" onclick="closeSettings()">&times;</span>
+            </div>
+            <div class="settings-body">
+
+
+                <div class="settings-group">
+                    <h3>Аккаунт Google</h3>
+                    <button class="settings-btn-action" id="google-login-btn" onclick="handleGoogleLogin()">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                        <span id="google-login-text">Войти в Google</span>
+                    </button>
+                    <button class="settings-btn-action settings-btn-secondary" id="google-logout-btn" onclick="handleGoogleLogout()" style="display: none;">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        Выйти из Google
+                    </button>
+                    <p class="settings-hint" id="google-status-hint">Войдите, чтобы смотреть видео с Google Drive</p>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Плеер</h3>
+                    <div class="settings-row">
+                        <label class="settings-toggle">
+                            <input type="checkbox" id="setting-autoplay-next" onchange="toggleAutoplayNext(this.checked)">
+                            <span class="settings-toggle-track"></span>
+                            <span class="settings-toggle-label">Автовоспроизведение следующей серии</span>
+                        </label>
+                    </div>
+                    <div class="settings-input-row">
+                        <label for="setting-skip-time">Время скипа (сек):</label>
+                        <input type="text" id="setting-skip-time" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="90" onchange="saveSkipSettings()">
+                    </div>
+                    <button class="settings-btn-action" onclick="openBindingsModal()">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"></path></svg>
+                        Бинды плеера
+                    </button>
+                    <p class="settings-hint">Кнопка «Пропустить» будет перематывать видео на указанное число секунд вперёд.</p>
+                </div>
+
+                <!-- ОБНОВЛЕННЫЙ БЛОК 18+ (БЕЗ КРУЖКА) -->
+                <div class="settings-group">
+                    <h3>Контент</h3>
+                    <div class="settings-row" style="flex-direction: row; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="adult-label" style="font-size: 16px;">18+</span>
+                            <label class="settings-toggle" style="padding: 0;">
+                                <input type="checkbox" id="setting-adult-mode" onchange="handleAdultToggle()">
+                                <span class="settings-toggle-track"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Данные</h3>
+                    <div class="settings-row">
+                        <button class="settings-btn-action" onclick="exportBackup()">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Скачать бэкап
+                        </button>
+                        <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importBackup(event)">
+                        <button class="settings-btn-action" onclick="document.getElementById('import-file').click()">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Загрузить бэкап
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Информация</h3>
+                    <div class="settings-info-row"><span>Версия</span><span class="value">v4.11.4</span></div>
+                    <div class="settings-info-row"><span>Дата выпуска</span><span class="value">4 ноября 2026</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bindings-modal" class="custom-modal" style="display: none;">
+        <!-- ... (без изменений) ... -->
+        <div class="settings-modal-content">
+            <div class="settings-header">
+                <h2>Бинды плеера</h2>
+                <span class="close-btn" onclick="closeBindingsModal()">&times;</span>
+            </div>
+            <div class="settings-body">
+                <div class="bindings-list">
+                    <div class="bindings-row"><span>Пауза / Воспроизведение</span><div class="keys"><kbd>Space</kbd> <kbd>K</kbd></div></div>
+                    <div class="bindings-row"><span>Фуллскрин</span><div class="keys"><kbd>F</kbd></div></div>
+                    <div class="bindings-row"><span>Перемотка -5 сек</span><div class="keys"><kbd>←</kbd></div></div>
+                    <div class="bindings-row"><span>Перемотка +5 сек</span><div class="keys"><kbd>→</kbd></div></div>
+                    <div class="bindings-row"><span>Перемотка -10 сек</span><div class="keys"><kbd>J</kbd></div></div>
+                    <div class="bindings-row"><span>Перемотка +10 сек</span><div class="keys"><kbd>L</kbd></div></div>
+                    <div class="bindings-row"><span>Громкость +</span><div class="keys"><kbd>↑</kbd></div></div>
+                    <div class="bindings-row"><span>Громкость -</span><div class="keys"><kbd>↓</kbd></div></div>
+                    <div class="bindings-row"><span>Мьют</span><div class="keys"><kbd>M</kbd></div></div>
+                    <div class="bindings-row"><span>Закрыть плеер</span><div class="keys"><kbd>Esc</kbd></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="player-overlay" class="player-overlay" style="display: none;">
+        <div class="player-overlay-video" id="overlay-video-container"></div>
+        <aside class="episodes-panel" id="episodes-panel">
+            <div class="episodes-panel-header">
+                <span>Серии</span>
+                <span class="close-btn" onclick="toggleEpisodesPanel()">&times;</span>
+            </div>
+            <div class="episodes-panel-list" id="episodes-panel-list"></div>
+        </aside>
+    </div>
+
+    <div id="custom-confirm" class="custom-modal" style="display: none;">
+        <div class="custom-modal-content">
+            <h3 id="confirm-title">Подтверждение</h3>
+            <p id="confirm-message"></p>
+            <div class="custom-modal-buttons">
+                <button class="modal-btn modal-btn-cancel" id="confirm-cancel">Отмена</button>
+                <button class="modal-btn modal-btn-ok" id="confirm-ok">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-alert" class="custom-modal" style="display: none;">
+        <div class="custom-modal-content">
+            <h3 id="alert-title">Уведомление</h3>
+            <p id="alert-message"></p>
+            <div class="custom-modal-buttons">
+                <button class="modal-btn modal-btn-ok" id="alert-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ШАБЛОН ДЛЯ СЛУЧАЙНОГО АНИМЕ -->
+    <div id="random-menu-template" style="display: none;">
+        <div class="random-menu-header">Случайное аниме</div>
+        <div class="random-filter-group">
+            <label>Жанр:</label>
+            <div class="custom-select" id="random-select-genre">
+                <div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div>
+                <div class="custom-options"></div>
+            </div>
+        </div>
+        <div class="random-filter-group">
+            <label>Год:</label>
+            <div class="custom-select" id="random-select-year">
+                <div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div>
+                <div class="custom-options"></div>
+            </div>
+        </div>
+        <button class="random-menu-item random-roll-btn" onclick="doRandomAnime()"><span>Крутить</span></button>
+    </div>
+
+    <script src="storage.js"></script>
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+    
+    <div id="update-banner" class="update-banner" style="display: none;">
+        <div class="update-info">
+            <span id="update-text">Доступна новая версия!</span>
+            <div class="update-progress-bar">
+                <div id="update-progress-fill" class="update-progress-fill"></div>
+            </div>
+        </div>
+        <div class="update-actions">
+            <button id="update-btn" class="update-btn" onclick="startUpdate()">Обновить</button>
+            <button id="restart-btn" class="restart-btn" onclick="restartApp()" style="display: none;">Перезапустить</button>
+        </div>
     </div>
 </body>
 </html>
