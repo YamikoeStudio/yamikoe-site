@@ -132,7 +132,7 @@ function handleGoogleLogin() {
     const CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
     
     // Адрес, куда Google вернет вас после входа
-    const REDIRECT_URI = 'https://mk2312mk15-cyber.github.io/yamikoe-studio-test/';
+    const REDIRECT_URI = 'https://yamikoestudio.pp.ua/';
     
     const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
     
