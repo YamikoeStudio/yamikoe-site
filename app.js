@@ -128,15 +128,10 @@ async function handleAdultToggle() {
 
 // ================== GOOGLE (ВХОД ЧЕРЕЗ ВКЛАДКУ) ==================
 function handleGoogleLogin() {
-    // Ваш Client ID (Web application)
     const CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
-    
-    // Адрес, куда Google вернет вас после входа
-  const REDIRECT_URI = 'https://yamikoestudio.pp.ua/';
-    
+    const REDIRECT_URI = 'https://yamikoestudio.pp.ua/';
     const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
     
-    // Формируем URL для входа
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${CLIENT_ID}` +
         `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
@@ -144,18 +139,15 @@ function handleGoogleLogin() {
         `&scope=${encodeURIComponent(SCOPE)}` +
         `&prompt=select_account`;
 
-    // Перенаправляем пользователя на страницу Google
     window.location.href = authUrl;
 }
 
-// Выход из аккаунта
 function handleGoogleLogout() {
     localStorage.removeItem('google_access_token');
     updateGoogleLoginButton(false);
     showAlert('Вы вышли из Google.', 'Готово');
 }
 
-// Обновление вида кнопки в настройках
 function updateGoogleLoginButton(isLoggedIn) {
     const text = document.getElementById('google-login-text');
     const hint = document.getElementById('google-status-hint');
@@ -246,7 +238,6 @@ function showSkeletons(container, count = 6) {
 
 // ================== ИНИЦИАЛИЗАЦИЯ ==================
 document.addEventListener('DOMContentLoaded', async () => {
-    // Перехватываем токен из адресной строки после входа
     if (window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
@@ -766,28 +757,7 @@ async function playEpisode(number, event) {
     
     let finalVideoUrl = url;
     
-    // Если ссылка ведет на Google Drive, мы не можем использовать кастомный плеер напрямую из-за CORS
-    if (fileId) {
-        container.innerHTML = `
-            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; background: #000;">
-                <div style="padding: 15px; background: rgba(20,10,35,0.9); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(168, 85, 247, 0.3);">
-                    <span style="color: #c084fc; font-weight: 700; font-size: 18px;">${currentAnime.title} — Серия ${number}</span>
-                    <button onclick="closePlayerOverlay(); switchTab('catalog');" style="background: rgba(168,85,247,0.2); border: 1px solid #a855f7; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;">Закрыть ✕</button>
-                </div>
-                <iframe 
-                    src="https://drive.google.com/file/d/${fileId}/preview" 
-                    width="100%" 
-                    height="100%" 
-                    allow="autoplay; fullscreen"
-                    style="border: none; flex: 1;">
-                </iframe>
-            </div>
-        `;
-        watchTimer = setTimeout(() => handleToggleWatched(null, number, true), 10000);
-        return; // Выходим, не запуская кастомный плеер
-    }
-
-    // Если ссылка НЕ на Google Drive (например, прямой .mp4), запускаем ваш кастомный плеер
+    // ВАШ КАСТОМНЫЙ ПЛЕЕР ЗАПУСКАЕТСЯ ЗДЕСЬ
     container.innerHTML = `
         <div class="custom-player-wrapper" id="custom-player">
             <video id="my-player" autoplay>
