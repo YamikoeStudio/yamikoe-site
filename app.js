@@ -129,7 +129,7 @@ async function handleAdultToggle() {
 // ================== GOOGLE (ВХОД ЧЕРЕЗ POPUP) ==================
 function handleGoogleLogin() {
     const CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
-    const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
+    const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
     if (typeof google === 'undefined' || !google.accounts) {
         showAlert('Библиотека Google не успела загрузиться. Повторите попытку.', 'Ошибка');
