@@ -1,4 +1,4 @@
-// app.js - Полная логика интерфейса (v4.11.4 - Веб-версия)
+// app.js - Полная логика интерфейса (v4.11.4 - Веб-версия с кастомным плеером)
 let currentAnime = null;
 let currentEpisodeNumber = null;
 let watchTimer = null;
@@ -126,20 +126,29 @@ async function handleAdultToggle() {
     }
 }
 
-// ================== GOOGLE (ВХОД ЧЕРЕЗ ВКЛАДКУ) ==================
+// ================== GOOGLE (ВХОД ЧЕРЕЗ POPUP) ==================
 function handleGoogleLogin() {
     const CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
-    const REDIRECT_URI = 'https://yamikoestudio.pp.ua/';
     const SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
-    
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${CLIENT_ID}` +
-        `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-        `&response_type=token` +
-        `&scope=${encodeURIComponent(SCOPE)}` +
-        `&prompt=select_account`;
 
-    window.location.href = authUrl;
+    if (typeof google === 'undefined' || !google.accounts) {
+        showAlert('Библиотека Google не успела загрузиться. Повторите попытку.', 'Ошибка');
+        return;
+    }
+
+    const client = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPE,
+        callback: (response) => {
+            if (response.access_token) {
+                localStorage.setItem('google_access_token', response.access_token);
+                updateGoogleLoginButton(true);
+                showAlert('Вы успешно вошли в Google!', 'Готово');
+            }
+        },
+    });
+
+    client.requestAccessToken();
 }
 
 function handleGoogleLogout() {
@@ -238,18 +247,8 @@ function showSkeletons(container, count = 6) {
 
 // ================== ИНИЦИАЛИЗАЦИЯ ==================
 document.addEventListener('DOMContentLoaded', async () => {
-    if (window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        if (accessToken) {
-            localStorage.setItem('google_access_token', accessToken);
-            window.history.replaceState(null, null, window.location.pathname);
-            updateGoogleLoginButton(true);
-        }
-    } else {
-        const savedToken = localStorage.getItem('google_access_token');
-        updateGoogleLoginButton(!!savedToken);
-    }
+    const savedToken = localStorage.getItem('google_access_token');
+    updateGoogleLoginButton(!!savedToken);
 
     const grid = document.getElementById('recent-releases-grid');
     if (grid) showSkeletons(grid, 10);
@@ -756,7 +755,31 @@ async function playEpisode(number, event) {
     const container = document.getElementById('overlay-video-container');
     
     let finalVideoUrl = url;
-    
+
+    // ПЫТАЕМСЯ СКАЧАТЬ ВИДЕО С ТОКЕНОМ (Обход CORS)
+    if (fileId) {
+        const token = localStorage.getItem('google_access_token');
+        if (token) {
+            container.innerHTML = `<p style="color:#a78bfa; padding:20px;">Загрузка видео с Google Drive...</p>`;
+            try {
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    finalVideoUrl = URL.createObjectURL(blob);
+                } else {
+                    throw new Error('Ошибка доступа к файлу');
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки видео:', e);
+                container.innerHTML = `<p style="color:#f87171; padding:20px;">Не удалось загрузить видео. Возможно, файл не принадлежит вам или доступ запрещен.</p>`;
+                return;
+            }
+        }
+    }
+
     // ВАШ КАСТОМНЫЙ ПЛЕЕР ЗАПУСКАЕТСЯ ЗДЕСЬ
     container.innerHTML = `
         <div class="custom-player-wrapper" id="custom-player">
