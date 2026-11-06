@@ -756,28 +756,9 @@ async function playEpisode(number, event) {
     
     let finalVideoUrl = url;
 
-    // ПЫТАЕМСЯ СКАЧАТЬ ВИДЕО С ТОКЕНОМ (Обход CORS)
+    // ИСПОЛЬЗУЕМ ПРЯМУЮ ССЫЛКУ ДЛЯ ПУБЛИЧНЫХ ФАЙЛОВ (БЕЗ ТОКЕНА И CORS)
     if (fileId) {
-        const token = localStorage.getItem('google_access_token');
-        if (token) {
-            container.innerHTML = `<p style="color:#a78bfa; padding:20px;">Загрузка видео с Google Drive...</p>`;
-            try {
-                const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (response.ok) {
-                    const blob = await response.blob();
-                    finalVideoUrl = URL.createObjectURL(blob);
-                } else {
-                    throw new Error('Ошибка доступа к файлу');
-                }
-            } catch (e) {
-                console.error('Ошибка загрузки видео:', e);
-                container.innerHTML = `<p style="color:#f87171; padding:20px;">Не удалось загрузить видео. Возможно, файл не принадлежит вам или доступ запрещен.</p>`;
-                return;
-            }
-        }
+        finalVideoUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
     }
 
     // ВАШ КАСТОМНЫЙ ПЛЕЕР ЗАПУСКАЕТСЯ ЗДЕСЬ
