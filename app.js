@@ -946,14 +946,16 @@ async function playEpisode(number, event) {
     }
 }
 
-// ================== ФУНКЦИЯ СОЗДАНИЯ PICKER (ИЗ ТВОЕГО КОДА) ==================
+// ================== ФУНКЦИЯ СОЗДАНИЯ PICKER (ИСПРАВЛЕНО) ==================
 function createPicker(token, number, fileId) {
-    const view = new google.picker.View(google.picker.ViewId.DOCS);
-    view.setMimeTypes('video/mp4,video/mkv,video/webm');
+    // ИСПОЛЬЗУЕМ DocsView, ЧТОБЫ ПОКАЗАТЬ ТОЛЬКО НУЖНЫЙ ФАЙЛ
+    const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+        .setFileIds(fileId)
+        .setMimeTypes('video/mp4,video/mkv,video/webm')
+        .setSelectFolderEnabled(false);
 
     const picker = new google.picker.PickerBuilder()
         .enableFeature(google.picker.Feature.NAV_HIDDEN)
-        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
         .setAppId(GOOGLE_APP_ID)
         .setOAuthToken(token)
         .addView(view)
