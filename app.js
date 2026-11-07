@@ -938,28 +938,38 @@ async function playEpisode(number, event) {
             else { reject(new Error('Библиотека Google Picker не загрузилась. Проверьте подключение скрипта apis.google.com')); }
         });
 
-        const picker = new google.picker.PickerBuilder()
-            .setDeveloperKey(GOOGLE_API_KEY)
-            .setAppId(GOOGLE_APP_ID)
-            .setOAuthToken(token)
-            .addView(new google.picker.DocsView(google.picker.ViewId.DOCS)
-                .setFileIds(fileId)
-                .setSelectFolderEnabled(false))
-            .setCallback((data) => {
-                if (data.action === google.picker.Action.PICKED) {
-                    const selectedFileId = data.docs[0].id;
-                    const directUrl = `https://www.googleapis.com/drive/v3/files/${selectedFileId}?alt=media&access_token=${token}`;
-                    renderPlayer(directUrl, number);
-                } else if (data.action === google.picker.Action.CANCEL) {
-                    closePlayerOverlay();
-                }
-            })
-            .build();
-        picker.setVisible(true);
+        createPicker(token, number, fileId);
+
     } catch (e) {
         console.error('Picker error:', e);
         container.innerHTML = `<p style="color:#f87171; padding:20px;">Ошибка: ${e.message}</p>`;
     }
+}
+
+// ================== ФУНКЦИЯ СОЗДАНИЯ PICKER (ИЗ ТВОЕГО КОДА) ==================
+function createPicker(token, number, fileId) {
+    const view = new google.picker.View(google.picker.ViewId.DOCS);
+    view.setMimeTypes('video/mp4,video/mkv,video/webm');
+
+    const picker = new google.picker.PickerBuilder()
+        .enableFeature(google.picker.Feature.NAV_HIDDEN)
+        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+        .setAppId(GOOGLE_APP_ID)
+        .setOAuthToken(token)
+        .addView(view)
+        .setDeveloperKey(GOOGLE_API_KEY)
+        .setCallback((data) => {
+            if (data.action === google.picker.Action.PICKED) {
+                const selectedFileId = data.docs[0].id;
+                const directUrl = `https://www.googleapis.com/drive/v3/files/${selectedFileId}?alt=media&access_token=${token}`;
+                renderPlayer(directUrl, number);
+            } else if (data.action === google.picker.Action.CANCEL) {
+                closePlayerOverlay();
+            }
+        })
+        .build();
+
+    picker.setVisible(true);
 }
 
 function renderEpisodesPanel(activeNumber) {
