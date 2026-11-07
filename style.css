@@ -2046,3 +2046,7 @@ input[type="number"] {
     width: 22px;
     height: 22px;
 }
+/* Принудительно выводим Google Picker на передний план поверх плеера */
+.picker-dialog, .picker, iframe[src*="picker"] {
+    z-index: 999999 !important;
+}
