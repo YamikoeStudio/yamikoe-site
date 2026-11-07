@@ -1,4 +1,4 @@
-// app.js - Веб-версия с Google Picker (v4.11.4)
+// app.js - Веб-версия с Google Picker (v4.12.0)
 let currentAnime = null;
 let currentEpisodeNumber = null;
 let watchTimer = null;
@@ -7,7 +7,7 @@ let searchTimer = null;
 let currentDayIndex = 0;
 let allReleasesCache = [];
 let filtersInitialized = false;
-const APP_VERSION = "4.11.4";
+const APP_VERSION = "4.12.0";
 let releasePage_limit = 30;
 let releasePage_showing = 30;
 let activeSelect = null;
@@ -22,7 +22,8 @@ let scrollPositions = { catalog: 0, schedule: 0, all: 0, favorites: 0, history: 
 const GOOGLE_API_KEY = 'AIzaSyAkK6b1KH9tq9OoESAiXZrkmJ1al6g3tyA';
 const GOOGLE_CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
 const GOOGLE_APP_ID = '8657706485';
-const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
+// ИСПОЛЬЗУЕМ ТОЛЬКО drive.readonly ДЛЯ ВЕБ-ВЕРСИИ
+const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 
 // ================== УМНЫЙ ПОИСК ==================
 const ruToEn = { 'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':"'",'я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.' };
@@ -138,7 +139,8 @@ function handleGoogleLogin() {
             }
         },
     });
-    client.requestAccessToken();
+    // Запрашиваем согласие, чтобы обновить разрешения, если они изменились
+    client.requestAccessToken({ prompt: 'consent' });
 }
 function handleGoogleLogout() {
     localStorage.removeItem('google_access_token');
@@ -960,11 +962,24 @@ function createPicker(token, number, fileId) {
         .setOAuthToken(token)
         .addView(view)
         .setDeveloperKey(GOOGLE_API_KEY)
-        .setCallback((data) => {
+        .setCallback(async (data) => {
             if (data.action === google.picker.Action.PICKED) {
                 const selectedFileId = data.docs[0].id;
-                const directUrl = `https://www.googleapis.com/drive/v3/files/${selectedFileId}?alt=media&access_token=${token}`;
-                renderPlayer(directUrl, number);
+                // Получаем URL для воспроизведения, а не прямую ссылку alt=media
+                try {
+                    const streamUrl = await getVideoStreamUrl(selectedFileId, token);
+                    if (streamUrl) {
+                        renderPlayer(streamUrl, number);
+                    } else {
+                        throw new Error('Не удалось получить ссылку на видеопоток.');
+                    }
+                } catch (error) {
+                    console.error('Ошибка получения видео:', error);
+                    const container = document.getElementById('overlay-video-container');
+                    if (container) {
+                        container.innerHTML = `<p style="color:#f87171; padding:20px;">Ошибка: ${error.message}</p>`;
+                    }
+                }
             } else if (data.action === google.picker.Action.CANCEL) {
                 closePlayerOverlay();
             }
@@ -972,6 +987,43 @@ function createPicker(token, number, fileId) {
         .build();
 
     picker.setVisible(true);
+}
+
+// Новая функция для получения URL видеопотока
+async function getVideoStreamUrl(fileId, token) {
+    // Используем эндпоинт get_video_info, который возвращает прямые ссылки на потоки
+    const response = await fetch(`https://docs.google.com/get_video_info?docid=${fileId}&access_token=${token}`);
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const text = await response.text();
+    const params = new URLSearchParams(text);
+    const fmtStreamMap = params.get('url_encoded_fmt_stream_map');
+
+    if (!fmtStreamMap) {
+        // Если карта потоков недоступна, пробуем вернуть прямую ссылку alt=media как fallback
+        console.warn('fmt_stream_map не найден, пробуем alt=media');
+        return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&access_token=${token}`;
+    }
+
+    // Парсим строку с потоками, чтобы найти URL с хорошим качеством (обычно первый или с itag=22/18)
+    const streams = fmtStreamMap.split(',');
+    for (const stream of streams) {
+        const streamParams = new URLSearchParams(stream);
+        const itag = streamParams.get('itag');
+        const url = streamParams.get('url');
+        if (url && (itag === '22' || itag === '18')) {
+            // Декодируем URL, так как он может быть закодирован
+            return decodeURIComponent(url);
+        }
+    }
+    // Если не нашли предпочтительный, берем первый доступный
+    const firstStream = new URLSearchParams(streams[0]);
+    const firstUrl = firstStream.get('url');
+    if (firstUrl) {
+        return decodeURIComponent(firstUrl);
+    }
+    throw new Error('Не удалось найти подходящий видеопоток.');
 }
 
 function renderEpisodesPanel(activeNumber) {
