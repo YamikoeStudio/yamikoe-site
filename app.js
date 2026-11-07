@@ -22,7 +22,7 @@ let scrollPositions = { catalog: 0, schedule: 0, all: 0, favorites: 0, history: 
 const GOOGLE_API_KEY = 'AIzaSyAkK6b1KH9tq9OoESAiXZrkmJ1al6g3tyA';
 const GOOGLE_CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
 const GOOGLE_APP_ID = '8657706485';
-const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
 
 // ================== УМНЫЙ ПОИСК ==================
 const ruToEn = { 'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':"'",'я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.' };
