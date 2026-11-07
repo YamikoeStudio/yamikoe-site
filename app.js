@@ -1,4 +1,4 @@
-// app.js - Полная логика интерфейса (v4.11.4 - Веб-версия с кастомным плеером)
+// app.js - Веб-версия с Google Picker (v4.11.4)
 let currentAnime = null;
 let currentEpisodeNumber = null;
 let watchTimer = null;
@@ -18,6 +18,12 @@ let positionSaveTimer = null;
 let pendingResumeTime = 0;
 let scrollPositions = { catalog: 0, schedule: 0, all: 0, favorites: 0, history: 0 };
 
+// ================== GOOGLE PICKER ==================
+const GOOGLE_API_KEY = 'AIzaSyAkK6b1KH9tq9OoESAiXZrkmJ1al6g3tyA';
+const GOOGLE_CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
+const GOOGLE_APP_ID = '8657706485';
+const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+
 // ================== УМНЫЙ ПОИСК ==================
 const ruToEn = { 'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':"'",'я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.' };
 const enToRu = { 'q':'й','w':'ц','e':'у','r':'к','t':'е','y':'н','u':'г','i':'ш','o':'щ','p':'з','[':'х',']':'ъ','a':'ф','s':'ы','d':'в','f':'а','g':'п','h':'р','j':'о','k':'л','l':'д',';':'ж',"'":'э','z':'я','x':'ч','c':'с','v':'м','b':'и','n':'т','m':'ь',',':'б','.':'ю' };
@@ -26,7 +32,6 @@ function convertLayout(text, direction = 'ru-to-en') {
     const map = direction === 'ru-to-en' ? ruToEn : enToRu;
     return text.split('').map(char => map[char.toLowerCase()] || char).join('');
 }
-
 function isMatch(text, query) {
     if (!text) return false;
     const t = text.toLowerCase();
@@ -37,7 +42,6 @@ function isMatch(text, query) {
     if (t.includes(converted)) return true;
     return false;
 }
-
 function isAdult(anime) {
     if (!anime) return false;
     const genres = (anime.genres || []).map(g => g.russian || g.name);
@@ -65,7 +69,6 @@ function showConfirm(message, title = 'Подтверждение') {
         document.getElementById('confirm-cancel').addEventListener('click', onCancel);
     });
 }
-
 function showAlert(message, title = 'Уведомление') {
     return new Promise((resolve) => {
         const modal = document.getElementById('custom-alert');
@@ -87,10 +90,8 @@ function openSettings() {
     if (auto) auto.checked = storage.getSetting('autoplayNext', true);
     const skip = document.getElementById('setting-skip-time');
     if (skip) skip.value = storage.getSetting('skipTime', 90);
-    
     const adultCheckbox = document.getElementById('setting-adult-mode');
     if (adultCheckbox) adultCheckbox.checked = storage.getSetting('adultMode', false);
-
     document.getElementById('settings-modal').style.display = 'flex';
 }
 function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
@@ -102,23 +103,17 @@ function saveSkipSettings() {
 function openBindingsModal() { document.getElementById('bindings-modal').style.display = 'flex'; }
 function closeBindingsModal() { document.getElementById('bindings-modal').style.display = 'none'; }
 
-// ================== 18+ ЛОГИКА ==================
+// ================== 18+ ==================
 async function handleAdultToggle() {
     const checkbox = document.getElementById('setting-adult-mode');
     const isChecked = checkbox.checked;
-
     if (isChecked) {
-        const confirmed = await showConfirm(
-            'Вы собираетесь включить контент 18+.\n\nВам есть 18 лет?',
-            'Подтверждение возраста'
-        );
+        const confirmed = await showConfirm('Вы собираетесь включить контент 18+.\n\nВам есть 18 лет?', 'Подтверждение возраста');
         if (confirmed) {
             storage.setSetting('adultMode', true);
             if (filtersInitialized) { initFilters(); applyFilters(); }
             renderHistory(); renderFavorites(); renderMainPage();
-        } else {
-            checkbox.checked = false; 
-        }
+        } else { checkbox.checked = false; }
     } else {
         storage.setSetting('adultMode', false);
         if (filtersInitialized) { initFilters(); applyFilters(); }
@@ -126,19 +121,15 @@ async function handleAdultToggle() {
     }
 }
 
-// ================== GOOGLE (ВХОД ЧЕРЕЗ POPUP) ==================
+// ================== GOOGLE LOGIN ==================
 function handleGoogleLogin() {
-    const CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
-    const SCOPE = 'https://www.googleapis.com/auth/drive.file';
-
     if (typeof google === 'undefined' || !google.accounts) {
         showAlert('Библиотека Google не успела загрузиться. Повторите попытку.', 'Ошибка');
         return;
     }
-
     const client = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPE,
+        client_id: GOOGLE_CLIENT_ID,
+        scope: GOOGLE_SCOPE,
         callback: (response) => {
             if (response.access_token) {
                 localStorage.setItem('google_access_token', response.access_token);
@@ -147,16 +138,13 @@ function handleGoogleLogin() {
             }
         },
     });
-
     client.requestAccessToken();
 }
-
 function handleGoogleLogout() {
     localStorage.removeItem('google_access_token');
     updateGoogleLoginButton(false);
     showAlert('Вы вышли из Google.', 'Готово');
 }
-
 function updateGoogleLoginButton(isLoggedIn) {
     const text = document.getElementById('google-login-text');
     const hint = document.getElementById('google-status-hint');
@@ -180,7 +168,6 @@ function exportBackup() {
     a.href = url; a.download = `yamikoe-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click(); URL.revokeObjectURL(url); showAlert('Бэкап сохранён!', 'Готово');
 }
-
 async function importBackup(event) {
     const file = event.target.files[0]; if (!file) return;
     const reader = new FileReader();
@@ -253,7 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('recent-releases-grid');
     if (grid) showSkeletons(grid, 10);
 
-    await API.init(); 
+    await API.init();
     initCustomSelects();
     const today = new Date().getDay();
     currentDayIndex = today === 0 ? 6 : today - 1;
@@ -268,40 +255,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 function switchTab(tab) {
     if (watchTimer) { clearTimeout(watchTimer); watchTimer = null; }
     const activeTab = document.querySelector('.nav-btn.active');
-    if (activeTab) {
-        const prevTab = activeTab.id.replace('btn-', '');
-        scrollPositions[prevTab] = window.scrollY;
-    }
+    if (activeTab) { scrollPositions[activeTab.id.replace('btn-', '')] = window.scrollY; }
 
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
     const tabEl = document.getElementById(`tab-${tab}`); const btnEl = document.getElementById(`btn-${tab}`);
     if (tabEl) tabEl.style.display = 'block'; if (btnEl) btnEl.classList.add('active');
-    
+
     if (tab === 'schedule') renderSchedule();
     if (tab === 'history') renderHistory();
-    if (tab === 'all') { 
-        releasePage_showing = releasePage_limit; 
-        if (!filtersInitialized) { initFilters(); filtersInitialized = true; } 
-        renderAllReleases(); 
-    }
+    if (tab === 'all') { releasePage_showing = releasePage_limit; if (!filtersInitialized) { initFilters(); filtersInitialized = true; } renderAllReleases(); }
     if (tab === 'favorites') renderFavorites();
-    
+
     const releasePage = document.getElementById('release-page'); if (releasePage) releasePage.remove();
     if (playerKeydownHandler) { document.removeEventListener('keydown', playerKeydownHandler); playerKeydownHandler = null; }
     if (playerMouseHandlers) { window.removeEventListener('mousemove', playerMouseHandlers.move); window.removeEventListener('mouseup', playerMouseHandlers.up); playerMouseHandlers = null; }
     if (controlsHideTimer) { clearTimeout(controlsHideTimer); controlsHideTimer = null; }
 
-    setTimeout(() => {
-        window.scrollTo({ top: scrollPositions[tab] || 0, behavior: 'instant' });
-    }, 50);
+    setTimeout(() => { window.scrollTo({ top: scrollPositions[tab] || 0, behavior: 'instant' }); }, 50);
 }
 
 // ================== ГЛАВНАЯ ==================
 async function renderMainPage() {
     const grid = document.getElementById('recent-releases-grid');
     const randomContainer = document.getElementById('random-anime-list'); if (!grid) return;
-    
     renderContinueWatching();
     showSkeletons(grid, 10);
     grid.innerHTML = ''; let recentIds = []; const uniqueIds = new Set();
@@ -323,7 +300,6 @@ async function renderMainPage() {
     for (const id of recentIds.slice(0, 15)) {
         const anime = await API.getAnimeMeta(id); if (!anime) continue;
         if (!isAdultMode && isAdult(anime)) continue;
-        
         const title = anime.russian || anime.name || ''; const titleKey = title.toLowerCase().trim();
         if (seenTitles.has(titleKey)) continue; seenTitles.add(titleKey);
         const videoData = API.findVideoAnime(id);
@@ -333,7 +309,6 @@ async function renderMainPage() {
         card.innerHTML = `<div class="card-img-wrapper"><div class="favorite-btn ${isFav ? 'active' : ''}" onclick="handleToggleFavorite(event, '${id}', '${title.replace(/'/g, "\\'")}', '${imgUrl}')">${isFav ? '★' : '☆'}</div><img src="${imgUrl}" alt="${title}" onerror="this.style.display='none'">${statusBadge}</div><div class="card-info"><div class="title">${title}</div></div>`;
         grid.appendChild(card);
     }
-
     if (randomContainer) {
         randomContainer.innerHTML = ''; const allIds = API.getAllUniqueIds().sort(() => 0.5 - Math.random()); let added = 0;
         for (const id of allIds) {
@@ -352,15 +327,13 @@ async function renderMainPage() {
     }
 }
 
-// ================== ПРОДОЛЖИТЬ ПРОСМОТР ==================
+// ================== ПРОДОЛЖИТЬ ==================
 async function renderContinueWatching() {
     const title = document.getElementById('continue-watching-title');
     const grid = document.getElementById('continue-watching-grid');
     if (!title || !grid) return;
-
     const history = storage.getHistory();
     const continueItems = [];
-
     for (const item of history) {
         const positions = storage.cache.playbackPositions[item.id];
         if (positions) {
@@ -368,37 +341,20 @@ async function renderContinueWatching() {
             if (epKeys.length > 0) {
                 let lastEp = epKeys.sort((a,b) => Number(b) - Number(a))[0];
                 let pos = positions[lastEp];
-                if (pos > 5) {
-                    continueItems.push({ ...item, lastEp, pos });
-                }
+                if (pos > 5) continueItems.push({ ...item, lastEp, pos });
             }
         }
         if (continueItems.length >= 5) break;
     }
-
-    if (continueItems.length === 0) {
-        title.style.display = 'none';
-        grid.style.display = 'none';
-        return;
-    }
-
-    title.style.display = 'block';
-    grid.style.display = 'grid';
-    grid.innerHTML = '';
-
+    if (continueItems.length === 0) { title.style.display = 'none'; grid.style.display = 'none'; return; }
+    title.style.display = 'block'; grid.style.display = 'grid'; grid.innerHTML = '';
     const isAdultMode = storage.getSetting('adultMode', false);
-
     for (const item of continueItems) {
         const meta = await API.getAnimeMeta(item.id);
         if (!isAdultMode && isAdult(meta)) continue;
-        
-        const card = document.createElement('div');
-        card.className = 'anime-card';
+        const card = document.createElement('div'); card.className = 'anime-card';
         card.onclick = () => openAnimePage({ shikimoriId: item.id });
-        const videoData = API.findVideoAnime(item.id);
-        const epCount = videoData ? videoData.episodes.length : 12;
         const percent = Math.min(100, Math.round((item.pos / 1440) * 100));
-
         card.innerHTML = `
             <div class="card-img-wrapper">
                 <img src="${item.image}" alt="${item.title}">
@@ -409,8 +365,7 @@ async function renderContinueWatching() {
                 <div class="progress-track" style="margin-top: 8px; height: 4px;">
                     <div class="progress-fill" style="width: ${percent}%;"></div>
                 </div>
-            </div>
-        `;
+            </div>`;
         grid.appendChild(card);
     }
 }
@@ -450,7 +405,6 @@ function selectDay(index) { currentDayIndex = index; renderSchedule(); }
 async function renderAllReleases() {
     const grid = document.getElementById('all-releases-grid'); if (!grid) return;
     showSkeletons(grid, 10);
-    
     if (allReleasesCache.length === 0) {
         const allIds = API.getAllUniqueIds(); const seenTitles = new Set();
         for (const id of allIds) {
@@ -459,18 +413,13 @@ async function renderAllReleases() {
             if (seenTitles.has(titleKey)) continue; seenTitles.add(titleKey);
             allReleasesCache.push({ id, anime });
         }
-        initFilters();
-        filtersInitialized = true;
+        initFilters(); filtersInitialized = true;
     }
     applyFilters();
 }
-
 function initFilters() {
-    const genresSet = new Set();
-    const yearsSet = new Set();
-    const voiceSet = new Set();
+    const genresSet = new Set(); const yearsSet = new Set(); const voiceSet = new Set();
     const isAdultMode = storage.getSetting('adultMode', false);
-
     allReleasesCache.forEach(({ id, anime }) => {
         if (anime.genres) anime.genres.forEach(g => {
             const genreName = g.russian || g.name;
@@ -479,44 +428,29 @@ function initFilters() {
             genresSet.add(genreName);
         });
         if (anime.aired_on) yearsSet.add(anime.aired_on.split('-')[0]);
-        
         const videoData = API.findVideoAnime(id);
-        if (videoData && videoData.voice_team) {
-            videoData.voice_team.forEach(v => voiceSet.add(v));
-        }
+        if (videoData && videoData.voice_team) videoData.voice_team.forEach(v => voiceSet.add(v));
     });
-
-    if (isAdultMode) {
-        genresSet.add('Эротика');
-        genresSet.add('Хентай');
-        genresSet.add('Этти');
-    }
-
+    if (isAdultMode) { genresSet.add('Эротика'); genresSet.add('Хентай'); genresSet.add('Этти'); }
     const genreSelect = document.getElementById('select-genre');
     if (genreSelect) {
         const optionsDiv = genreSelect.querySelector('.custom-options');
         const genres = [...genresSet].filter(Boolean).sort();
-        optionsDiv.innerHTML = `<div class="custom-option selected" data-value="">Все жанры</div>` +
-            genres.map(g => `<div class="custom-option" data-value="${String(g).replace(/"/g, '&quot;')}">${g}</div>`).join('');
+        optionsDiv.innerHTML = `<div class="custom-option selected" data-value="">Все жанры</div>` + genres.map(g => `<div class="custom-option" data-value="${String(g).replace(/"/g, '&quot;')}">${g}</div>`).join('');
     }
-
     const yearSelect = document.getElementById('select-year');
     if (yearSelect) {
         const optionsDiv = yearSelect.querySelector('.custom-options');
         const years = [...yearsSet].filter(Boolean).sort((a, b) => b - a);
-        optionsDiv.innerHTML = `<div class="custom-option selected" data-value="">Все годы</div>` +
-            years.map(y => `<div class="custom-option" data-value="${y}">${y}</div>`).join('');
+        optionsDiv.innerHTML = `<div class="custom-option selected" data-value="">Все годы</div>` + years.map(y => `<div class="custom-option" data-value="${y}">${y}</div>`).join('');
     }
-
     const voiceSelect = document.getElementById('select-voice');
     if (voiceSelect) {
         const optionsDiv = voiceSelect.querySelector('.custom-options');
         const voices = [...voiceSet].filter(Boolean).sort();
-        optionsDiv.innerHTML = `<div class="custom-option selected" data-value="">Все</div>` +
-            voices.map(v => `<div class="custom-option" data-value="${String(v).replace(/"/g, '&quot;')}">${v}</div>`).join('');
+        optionsDiv.innerHTML = `<div class="custom-option selected" data-value="">Все</div>` + voices.map(v => `<div class="custom-option" data-value="${String(v).replace(/"/g, '&quot;')}">${v}</div>`).join('');
     }
 }
-
 function applyFilters() {
     const grid = document.getElementById('all-releases-grid'); if (!grid) return;
     const genre = document.querySelector('#select-genre .custom-option.selected')?.dataset.value || '';
@@ -524,20 +458,13 @@ function applyFilters() {
     const voice = document.querySelector('#select-voice .custom-option.selected')?.dataset.value || '';
     const sort = document.querySelector('#select-sort .custom-option.selected')?.dataset.value || 'rating';
     const isAdultMode = storage.getSetting('adultMode', false);
-
     let filtered = allReleasesCache.filter(({ id, anime }) => {
         if (!isAdultMode && isAdult(anime)) return false;
         if (genre && !(anime.genres || []).some(g => (g.russian || g.name) === genre)) return false;
         if (year && (!anime.aired_on || anime.aired_on.split('-')[0] !== year)) return false;
-        
-        if (voice) {
-            const videoData = API.findVideoAnime(id);
-            const team = videoData?.voice_team || [];
-            if (!team.includes(voice)) return false;
-        }
+        if (voice) { const videoData = API.findVideoAnime(id); if (!(videoData?.voice_team || []).includes(voice)) return false; }
         return true;
     });
-
     filtered.sort((a, b) => {
         if (sort === 'rating') return (b.anime.score || 0) - (a.anime.score || 0);
         if (sort === 'name') return (a.anime.russian || '').localeCompare(b.anime.russian || '');
@@ -546,8 +473,7 @@ function applyFilters() {
         return 0;
     });
     grid.innerHTML = ''; if (filtered.length === 0) { grid.innerHTML = '<p class="empty-msg">Ничего не найдено</p>'; return; }
-    const toShow = filtered.slice(0, releasePage_showing);
-    toShow.forEach(({ id, anime }) => {
+    filtered.slice(0, releasePage_showing).forEach(({ id, anime }) => {
         const videoData = API.findVideoAnime(id); let imgUrl = '';
         if (anime.image && anime.image.original) { imgUrl = anime.image.original.startsWith('http') ? anime.image.original : `https://shikimori.one${anime.image.original}`; }
         const title = anime.russian || anime.name || ''; const isFav = storage.isFavorite(id);
@@ -585,10 +511,7 @@ function renderFavorites() {
     const isAdultMode = storage.getSetting('adultMode', false);
     (async () => {
         for (const fav of favs) {
-            if (!isAdultMode) {
-                const anime = await API.getAnimeMeta(fav.id);
-                if (isAdult(anime)) continue;
-            }
+            if (!isAdultMode) { const anime = await API.getAnimeMeta(fav.id); if (isAdult(anime)) continue; }
             const card = document.createElement('div'); card.className = 'anime-card'; card.dataset.id = fav.id; card.onclick = () => openAnimePage({ shikimoriId: fav.id });
             card.innerHTML = `<div class="card-img-wrapper"><div class="favorite-btn active" onclick="handleToggleFavorite(event, '${fav.id}', '${fav.title.replace(/'/g, "\\'")}', '${fav.image}')">★</div><img src="${fav.image}" alt="${fav.title}"></div><div class="card-info"><div class="title">${fav.title}</div></div>`;
             grid.appendChild(card);
@@ -603,10 +526,7 @@ function renderHistory() {
     const isAdultMode = storage.getSetting('adultMode', false);
     (async () => {
         for (const item of history) {
-            if (!isAdultMode) {
-                const anime = await API.getAnimeMeta(item.id);
-                if (isAdult(anime)) continue;
-            }
+            if (!isAdultMode) { const anime = await API.getAnimeMeta(item.id); if (isAdult(anime)) continue; }
             const card = document.createElement('div'); card.className = 'anime-card history-card' + (deleteMode ? ' delete-mode' : ''); card.dataset.id = item.id;
             card.onclick = () => { if (!deleteMode) openAnimePage({ shikimoriId: item.id }); };
             const deleteBadge = deleteMode ? `<div class="delete-badge" onclick="removeFromHistory(event, '${item.id}')">✕</div>` : '';
@@ -632,7 +552,6 @@ function formatTime(seconds) {
     const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
-
 async function openAnimePage(item) {
     const id = String(item.shikimoriId || item.id); if (id === 'null') return;
     const fullVideoData = API.findVideoAnime(id); const meta = await API.getAnimeMeta(id);
@@ -679,9 +598,8 @@ function filterByVoiceActor(actorName) {
             if (triggerSpan) triggerSpan.textContent = actorName;
             voiceSelect.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
             const targetOption = Array.from(voiceSelect.querySelectorAll('.custom-option')).find(o => o.dataset.value === actorName);
-            if (targetOption) {
-                targetOption.classList.add('selected');
-            } else {
+            if (targetOption) { targetOption.classList.add('selected'); }
+            else {
                 const optionsDiv = voiceSelect.querySelector('.custom-options');
                 const newOpt = document.createElement('div');
                 newOpt.className = 'custom-option selected';
@@ -694,9 +612,8 @@ function filterByVoiceActor(actorName) {
     }, 50);
 }
 
-// ================== ПЛЕЕР (ОВЕРЛЕЙ) ==================
+// ================== ПЛЕЕР ==================
 function openPlayerOverlay() { document.getElementById('player-overlay').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-
 function closePlayerOverlay() {
     const video = document.getElementById('my-player');
     if (video && currentAnime && currentEpisodeNumber !== null) { storage.setPlaybackPosition(currentAnime.id, currentEpisodeNumber, video.currentTime); }
@@ -710,64 +627,21 @@ function closePlayerOverlay() {
     document.getElementById('episodes-panel').classList.remove('open');
     pendingResumeTime = 0;
 }
-
-function toggleEpisodesPanel() { 
-    const panel = document.getElementById('episodes-panel'); 
-    if (panel) panel.classList.toggle('open'); 
-}
-
-function skipTime() { 
-    const video = document.getElementById('my-player'); 
-    if (!video) return; 
-    const sec = parseInt(storage.getSetting('skipTime', 90), 10) || 0; 
-    video.currentTime = Math.min(video.currentTime + sec, (video.duration || Infinity) - 1); 
-}
-
+function toggleEpisodesPanel() { const panel = document.getElementById('episodes-panel'); if (panel) panel.classList.toggle('open'); }
+function skipTime() { const video = document.getElementById('my-player'); if (!video) return; const sec = parseInt(storage.getSetting('skipTime', 90), 10) || 0; video.currentTime = Math.min(video.currentTime + sec, (video.duration || Infinity) - 1); }
 function playPrevEpisode() { if (!currentAnime || currentEpisodeNumber === null) return; const idx = currentAnime.episodes.findIndex(e => e.number === currentEpisodeNumber); if (idx > 0) playEpisode(currentAnime.episodes[idx - 1].number); }
 function playNextEpisode() { if (!currentAnime || currentEpisodeNumber === null) return; const idx = currentAnime.episodes.findIndex(e => e.number === currentEpisodeNumber); if (idx >= 0 && idx + 1 < currentAnime.episodes.length) { playEpisode(currentAnime.episodes[idx + 1].number); } }
 function applyResume() { const video = document.getElementById('my-player'); if (!video) return; video.currentTime = pendingResumeTime; document.getElementById('resume-bar').style.display = 'none'; pendingResumeTime = 0; video.play(); }
 function dismissResume() { document.getElementById('resume-bar').style.display = 'none'; pendingResumeTime = 0; }
 
-async function playEpisode(number, event) {
-    if (event) event.stopPropagation(); if (!currentAnime) return;
-    const videoData = API.findVideoAnime(currentAnime.id); const ep = videoData?.episodes.find(e => e.number === number);
-    if (!ep || !ep.video_url) return;
-
-    if (currentEpisodeNumber !== null && currentAnime) { const oldVideo = document.getElementById('my-player'); if (oldVideo) { storage.setPlaybackPosition(currentAnime.id, currentEpisodeNumber, oldVideo.currentTime); } }
-    if (watchTimer) { clearTimeout(watchTimer); watchTimer = null; }
-    if (controlsHideTimer) { clearTimeout(controlsHideTimer); controlsHideTimer = null; }
-    if (playerMouseHandlers) { window.removeEventListener('mousemove', playerMouseHandlers.move); window.removeEventListener('mouseup', playerMouseHandlers.up); playerMouseHandlers = null; }
-    if (positionSaveTimer) { clearInterval(positionSaveTimer); positionSaveTimer = null; }
-
-    currentEpisodeNumber = number;
-    openPlayerOverlay();
-
-    const idx = currentAnime.episodes.findIndex(e => e.number === number);
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    if (prevBtn) prevBtn.disabled = idx <= 0;
-    if (nextBtn) nextBtn.disabled = idx >= currentAnime.episodes.length - 1;
-    
-    renderEpisodesPanel(number);
-
-    const url = ep.video_url; let fileId = null;
-    if (url.includes('drive.google.com')) { const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if (match) fileId = match[1]; }
+// Рендер HTML плеера + вся логика
+function renderPlayer(videoUrl, number) {
     const container = document.getElementById('overlay-video-container');
-    
-    let finalVideoUrl = url;
-
-    // ИСПОЛЬЗУЕМ ПРЯМУЮ ССЫЛКУ ДЛЯ ПУБЛИЧНЫХ ФАЙЛОВ (БЕЗ ТОКЕНА И CORS)
-    if (fileId) {
-        finalVideoUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    }
-
-    // ВАШ КАСТОМНЫЙ ПЛЕЕР ЗАПУСКАЕТСЯ ЗДЕСЬ
     container.innerHTML = `
         <div class="custom-player-wrapper" id="custom-player">
             <video id="my-player" autoplay>
-                <source src="${finalVideoUrl}" type="video/mp4">
+                <source src="${videoUrl}" type="video/mp4">
             </video>
-
             <aside class="episodes-panel" id="episodes-panel">
                 <div class="episodes-panel-header">
                     <span>Серии</span>
@@ -775,15 +649,12 @@ async function playEpisode(number, event) {
                 </div>
                 <div class="episodes-panel-list" id="episodes-panel-list"></div>
             </aside>
-
             <div class="player-close-btn" onclick="closePlayerOverlay(); switchTab('catalog');">✕</div>
-
             <div class="player-controls">
                 <div class="player-top-info">
                     <span class="player-title">${currentAnime.title}</span>
                     <span class="player-subtitle">Серия ${number}</span>
                 </div>
-
                 <div class="player-middle-section">
                     <div class="resume-bar" id="resume-bar" style="display: none;">
                         <span class="resume-text">Продолжить с <span class="resume-time-highlight" id="resume-time-text">0:00</span>?</span>
@@ -797,7 +668,6 @@ async function playEpisode(number, event) {
                         <div class="player-progress-thumb" id="player-progress-thumb"></div>
                     </div>
                 </div>
-
                 <div class="player-bottom-wrapper">
                     <div class="player-bottom-left">
                         <div class="player-time-volume">
@@ -809,13 +679,11 @@ async function playEpisode(number, event) {
                             </div>
                         </div>
                     </div>
-
                     <div class="player-center-controls">
                         <button class="player-btn player-btn-nav" id="prev-btn"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
                         <button class="player-btn player-btn-main" id="play-pause-btn"><svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg><svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
                         <button class="player-btn player-btn-nav" id="next-btn"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
                     </div>
-
                     <div class="player-buttons-right">
                         <button class="player-btn" id="skip-btn"><svg viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg></button>
                         <button class="player-btn player-btn-pip" id="pip-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><rect x="12" y="12" width="8" height="6" rx="1" fill="currentColor"/></svg></button>
@@ -826,7 +694,11 @@ async function playEpisode(number, event) {
             </div>
         </div>
     `;
+    initPlayerLogic(number);
+}
 
+// Логика плеера (навешиваем обработчики)
+function initPlayerLogic(number) {
     const video = document.getElementById('my-player'); const playerWrapper = document.getElementById('custom-player');
     const playPauseBtn = document.getElementById('play-pause-btn');
     const iconPlay = document.getElementById('icon-play'); const iconPause = document.getElementById('icon-pause');
@@ -847,6 +719,7 @@ async function playEpisode(number, event) {
     });
 
     video.addEventListener('error', () => {
+        const container = document.getElementById('overlay-video-container');
         container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #f87171;">
                 <p style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Ошибка воспроизведения</p>
@@ -913,11 +786,11 @@ async function playEpisode(number, event) {
     window.addEventListener('mouseup', playerMouseHandlers.up);
 
     video.addEventListener('timeupdate', () => {
-        if (!isDragging && video.duration) { 
-            const percent = (video.currentTime / video.duration) * 100; 
-            progressFill.style.width = `${percent}%`; 
+        if (!isDragging && video.duration) {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = `${percent}%`;
             progressThumb.style.left = `${percent}%`;
-            timeCurrent.textContent = formatTime(video.currentTime); 
+            timeCurrent.textContent = formatTime(video.currentTime);
             updateRemainingTime();
         }
     });
@@ -936,7 +809,7 @@ async function playEpisode(number, event) {
     if (pipBtn) {
         pipBtn.addEventListener('click', async () => {
             try {
-                if (document.pictureInPictureElement) { await document.exitPictureInPicture(); } 
+                if (document.pictureInPictureElement) { await document.exitPictureInPicture(); }
                 else { await video.requestPictureInPicture(); }
             } catch (e) { console.error('PiP error:', e); }
         });
@@ -975,6 +848,120 @@ async function playEpisode(number, event) {
     watchTimer = setTimeout(() => handleToggleWatched(null, number, true), 10000);
 }
 
+// ГЛАВНАЯ ФУНКЦИЯ ПЛЕЕРА
+async function playEpisode(number, event) {
+    if (event) event.stopPropagation(); if (!currentAnime) return;
+    const videoData = API.findVideoAnime(currentAnime.id); const ep = videoData?.episodes.find(e => e.number === number);
+    if (!ep || !ep.video_url) return;
+
+    if (currentEpisodeNumber !== null && currentAnime) { const oldVideo = document.getElementById('my-player'); if (oldVideo) { storage.setPlaybackPosition(currentAnime.id, currentEpisodeNumber, oldVideo.currentTime); } }
+    if (watchTimer) { clearTimeout(watchTimer); watchTimer = null; }
+    if (controlsHideTimer) { clearTimeout(controlsHideTimer); controlsHideTimer = null; }
+    if (playerMouseHandlers) { window.removeEventListener('mousemove', playerMouseHandlers.move); window.removeEventListener('mouseup', playerMouseHandlers.up); playerMouseHandlers = null; }
+    if (positionSaveTimer) { clearInterval(positionSaveTimer); positionSaveTimer = null; }
+
+    currentEpisodeNumber = number;
+    openPlayerOverlay();
+
+    const idx = currentAnime.episodes.findIndex(e => e.number === number);
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    if (prevBtn) prevBtn.disabled = idx <= 0;
+    if (nextBtn) nextBtn.disabled = idx >= currentAnime.episodes.length - 1;
+
+    renderEpisodesPanel(number);
+
+    const url = ep.video_url; let fileId = null;
+    if (url.includes('drive.google.com')) { const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/); if (match) fileId = match[1]; }
+    const container = document.getElementById('overlay-video-container');
+
+    // ===== ДЕСКТОП (Electron) =====
+    if (fileId && window.electronAPI && window.electronAPI.getDriveVideoUrl) {
+        container.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #a78bfa;">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px; animation: spin 2s linear infinite;">
+                    <line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                </svg>
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Ожидание подтверждения...</p>
+                <p style="font-size: 14px; opacity: 0.7; text-align: center; max-width: 400px;">В открывшемся браузере нажмите <b>«Разрешить»</b> и <b>«Вставить»</b>, чтобы видео загрузилось.</p>
+                <button onclick="closePlayerOverlay(); switchTab('catalog');" style="margin-top: 20px; padding: 8px 16px; background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #fff; border-radius: 8px; cursor: pointer;">Вернуться на главную</button>
+            </div>
+            <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+        `;
+        const result = await window.electronAPI.getDriveVideoUrl(fileId);
+        if (result.success) { renderPlayer(result.url, number); }
+        else {
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #f87171;">
+                    <p style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Ошибка загрузки видео</p>
+                    <p style="font-size: 14px; opacity: 0.7; text-align: center; max-width: 400px;">${result.error}</p>
+                    <button onclick="closePlayerOverlay(); switchTab('catalog');" style="margin-top: 20px; padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fff; border-radius: 8px; cursor: pointer;">Вернуться на главную</button>
+                </div>
+            `;
+        }
+        return;
+    }
+
+    // ===== ВЕБ (Google Picker) =====
+    const token = localStorage.getItem('google_access_token');
+    if (!token) {
+        container.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #f87171; padding: 20px; text-align: center;">
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Требуется вход в Google</p>
+                <p style="font-size: 14px; opacity: 0.7; margin-bottom: 20px;">Чтобы смотреть видео с Google Drive, войдите в аккаунт.</p>
+                <button onclick="closePlayerOverlay(); openSettings();" style="padding: 10px 20px; background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #fff; border-radius: 8px; cursor: pointer;">Перейти в настройки</button>
+            </div>
+        `;
+        return;
+    }
+
+    if (!fileId) {
+        container.innerHTML = `<p style="color:#f87171; padding:20px;">Неверная ссылка на видео.</p>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #a78bfa;">
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px; animation: spin 2s linear infinite;">
+                <line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+            </svg>
+            <p style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Открываем окно выбора файла...</p>
+            <p style="font-size: 14px; opacity: 0.7; text-align: center; max-width: 400px;">Разрешите доступ к файлу в открывшемся окне Google Picker.</p>
+            <button onclick="closePlayerOverlay(); switchTab('catalog');" style="margin-top: 20px; padding: 8px 16px; background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #fff; border-radius: 8px; cursor: pointer;">Вернуться на главную</button>
+        </div>
+        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
+    `;
+
+    try {
+        await new Promise((resolve, reject) => {
+            if (window.gapi) { window.gapi.load('picker', { callback: resolve, onerror: reject }); }
+            else { reject(new Error('Библиотека Google Picker не загрузилась. Проверьте подключение скрипта apis.google.com')); }
+        });
+
+        const picker = new google.picker.PickerBuilder()
+            .setDeveloperKey(GOOGLE_API_KEY)
+            .setAppId(GOOGLE_APP_ID)
+            .setOAuthToken(token)
+            .addView(new google.picker.DocsView(google.picker.ViewId.DOCS)
+                .setFileIds(fileId)
+                .setSelectFolderEnabled(false))
+            .setCallback((data) => {
+                if (data.action === google.picker.Action.PICKED) {
+                    const selectedFileId = data.docs[0].id;
+                    const directUrl = `https://www.googleapis.com/drive/v3/files/${selectedFileId}?alt=media&access_token=${token}`;
+                    renderPlayer(directUrl, number);
+                } else if (data.action === google.picker.Action.CANCEL) {
+                    closePlayerOverlay();
+                }
+            })
+            .build();
+        picker.setVisible(true);
+    } catch (e) {
+        console.error('Picker error:', e);
+        container.innerHTML = `<p style="color:#f87171; padding:20px;">Ошибка: ${e.message}</p>`;
+    }
+}
+
 function renderEpisodesPanel(activeNumber) {
     const list = document.getElementById('episodes-panel-list'); if (!list || !currentAnime) return;
     const watched = storage.getWatched(currentAnime.id);
@@ -999,23 +986,19 @@ function handleToggleWatched(event, epNum, forceWatch = false) {
 
 // ================== ПОИСК ==================
 function searchAnime() { clearTimeout(searchTimer); searchTimer = setTimeout(() => doSearchAnime(), 400); }
-
 async function doSearchAnime() {
     const query = document.getElementById('search-input').value.trim(); if (!query) return switchTab('catalog');
     switchTab('all'); const grid = document.getElementById('all-releases-grid'); showSkeletons(grid, 6);
     if (allReleasesCache.length === 0) { await renderAllReleases(); }
     const lowerQuery = query.toLowerCase(); const results = [];
     const isAdultMode = storage.getSetting('adultMode', false);
-
     for (const animeObj of API.videoData) {
         const id = String(animeObj.shikimoriId); if (id === 'null') continue;
         const meta = await API.getAnimeMeta(id);
         if (!isAdultMode && isAdult(meta)) continue;
-
         const titles = [animeObj.title || '', meta?.russian || '', meta?.name || ''].map(t => String(t).toLowerCase());
         let matched = titles.some(t => isMatch(t, lowerQuery));
         if (!matched && animeObj.voice_team) { matched = animeObj.voice_team.some(v => isMatch(String(v), lowerQuery)); }
-        
         if (matched) { results.push({ id, animeObj, meta }); }
     }
     grid.innerHTML = ''; const loadMoreBtn = document.getElementById('btn-load-more'); if (loadMoreBtn) loadMoreBtn.style.display = 'none';
@@ -1030,7 +1013,6 @@ async function doSearchAnime() {
         grid.appendChild(card);
     });
 }
-
 function handleSearchKey(event) {
     if (event.key === 'Enter') {
         event.preventDefault(); const query = document.getElementById('search-input').value.trim();
@@ -1048,142 +1030,58 @@ function hideSearchHistory() { const box = document.getElementById('search-histo
 function selectSearchQuery(query) { document.getElementById('search-input').value = query; doSearchAnime(); hideSearchHistory(); }
 function clearSearchHistory() { storage.clearSearchHistory(); showSearchHistory(); }
 
-// ================== СЛУЧАЙНОЕ АНИМЕ (КОНФИГУРАЦИИ) ==================
+// ================== СЛУЧАЙНОЕ АНИМЕ ==================
 async function openRandomAnime() {
     const existingMenu = document.getElementById('random-menu-popup'); if (existingMenu) { existingMenu.remove(); return; }
     if (allReleasesCache.length === 0) await renderAllReleases();
-    
-    const genresSet = new Set(); 
-    const themesSet = new Set(); 
-    const yearsSet = new Set();
-
-    allReleasesCache.forEach(({ anime }) => { 
+    const genresSet = new Set(); const themesSet = new Set(); const yearsSet = new Set();
+    allReleasesCache.forEach(({ anime }) => {
         if (anime.genres) anime.genres.forEach(g => {
             const genreName = g.russian || g.name;
-            if (['Школа', 'Повседневность', 'Гарем', 'Исекай', 'Меха', 'Магия', 'Демоны', 'Вампиры', 'Спорт', 'Музыка', 'Историческое'].includes(genreName)) {
-                themesSet.add(genreName);
-            } else {
-                genresSet.add(genreName);
-            }
-        }); 
-        if (anime.aired_on) yearsSet.add(anime.aired_on.split('-')[0]); 
+            if (['Школа', 'Повседневность', 'Гарем', 'Исекай', 'Меха', 'Магия', 'Демоны', 'Вампиры', 'Спорт', 'Музыка', 'Историческое'].includes(genreName)) themesSet.add(genreName);
+            else genresSet.add(genreName);
+        });
+        if (anime.aired_on) yearsSet.add(anime.aired_on.split('-')[0]);
     });
-    
-    const genres = [...genresSet].filter(Boolean).sort(); 
-    const themes = [...themesSet].filter(Boolean).sort();
+    const genres = [...genresSet].filter(Boolean).sort(); const themes = [...themesSet].filter(Boolean).sort();
     const years = [...yearsSet].filter(Boolean).sort((a, b) => b - a);
-    
-    const btn = document.querySelector('.random-btn'); 
-    if (!btn) return; 
-    const rect = btn.getBoundingClientRect();
-    
-    const menu = document.createElement('div'); 
-    menu.id = 'random-menu-popup';
+    const btn = document.querySelector('.random-btn'); if (!btn) return; const rect = btn.getBoundingClientRect();
+    const menu = document.createElement('div'); menu.id = 'random-menu-popup';
     menu.innerHTML = `
         <div class="random-menu-header">Случайное аниме</div>
-        <div class="random-filter-group">
-            <label>Жанр:</label>
-            <div class="custom-select" id="random-select-genre">
-                <div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div>
-                <div class="custom-options">
-                    <div class="custom-option selected" data-value="">Любой</div>
-                    ${genres.map(g => `<div class="custom-option" data-value="${g}">${g}</div>`).join('')}
-                </div>
-            </div>
-        </div>
-        <div class="random-filter-group">
-            <label>Тема:</label>
-            <div class="custom-select" id="random-select-theme">
-                <div class="custom-select-trigger"><span>Любая</span><span class="arrow">▼</span></div>
-                <div class="custom-options">
-                    <div class="custom-option selected" data-value="">Любая</div>
-                    ${themes.map(t => `<div class="custom-option" data-value="${t}">${t}</div>`).join('')}
-                </div>
-            </div>
-        </div>
-        <div class="random-filter-group">
-            <label>Год:</label>
-            <div class="custom-select" id="random-select-year">
-                <div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div>
-                <div class="custom-options">
-                    <div class="custom-option selected" data-value="">Любой</div>
-                    ${years.map(y => `<div class="custom-option" data-value="${y}">${y}</div>`).join('')}
-                </div>
-            </div>
-        </div>
-        <div class="random-filter-group">
-            <label>Рейтинг:</label>
-            <div class="custom-select" id="random-select-rating">
-                <div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div>
-                <div class="custom-options">
-                    <div class="custom-option selected" data-value="">Любой</div>
-                    <div class="custom-option" data-value="g">G - Без ограничений</div>
-                    <div class="custom-option" data-value="pg">PG - Детям</div>
-                    <div class="custom-option" data-value="pg_13">PG-13 - 13+</div>
-                    <div class="custom-option" data-value="r_17">R-17 - 17+</div>
-                    <div class="custom-option" data-value="r_plus">R+ - 18+</div>
-                    <div class="custom-option" data-value="rx">Rx - 18++</div>
-                </div>
-            </div>
-        </div>
+        <div class="random-filter-group"><label>Жанр:</label><div class="custom-select" id="random-select-genre"><div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div><div class="custom-options"><div class="custom-option selected" data-value="">Любой</div>${genres.map(g => `<div class="custom-option" data-value="${g}">${g}</div>`).join('')}</div></div></div>
+        <div class="random-filter-group"><label>Тема:</label><div class="custom-select" id="random-select-theme"><div class="custom-select-trigger"><span>Любая</span><span class="arrow">▼</span></div><div class="custom-options"><div class="custom-option selected" data-value="">Любая</div>${themes.map(t => `<div class="custom-option" data-value="${t}">${t}</div>`).join('')}</div></div></div>
+        <div class="random-filter-group"><label>Год:</label><div class="custom-select" id="random-select-year"><div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div><div class="custom-options"><div class="custom-option selected" data-value="">Любой</div>${years.map(y => `<div class="custom-option" data-value="${y}">${y}</div>`).join('')}</div></div></div>
+        <div class="random-filter-group"><label>Рейтинг:</label><div class="custom-select" id="random-select-rating"><div class="custom-select-trigger"><span>Любой</span><span class="arrow">▼</span></div><div class="custom-options"><div class="custom-option selected" data-value="">Любой</div><div class="custom-option" data-value="g">G - Без ограничений</div><div class="custom-option" data-value="pg">PG - Детям</div><div class="custom-option" data-value="pg_13">PG-13 - 13+</div><div class="custom-option" data-value="r_17">R-17 - 17+</div><div class="custom-option" data-value="r_plus">R+ - 18+</div><div class="custom-option" data-value="rx">Rx - 18++</div></div></div></div>
         <button class="random-menu-item random-roll-btn" onclick="doRandomAnime()"><span>Крутить</span></button>
     `;
-    
-    menu.style.position = 'absolute'; 
-    menu.style.top = `${rect.bottom + window.scrollY + 10}px`; 
-    menu.style.left = `${rect.left + window.scrollX - 120}px`;
+    menu.style.position = 'absolute'; menu.style.top = `${rect.bottom + window.scrollY + 10}px`; menu.style.left = `${rect.left + window.scrollX - 120}px`;
     document.body.appendChild(menu);
-
     menu.querySelectorAll('.custom-select').forEach(select => {
-        const trigger = select.querySelector('.custom-select-trigger');
-        const options = select.querySelector('.custom-options');
-        
-        trigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (activeSelect && activeSelect !== select) activeSelect.classList.remove('open');
-            select.classList.toggle('open');
-            activeSelect = select.classList.contains('open') ? select : null;
-        });
-        options.addEventListener('click', (e) => {
-            const option = e.target.closest('.custom-option');
-            if (!option) return;
-            trigger.querySelector('span:first-child').textContent = option.textContent;
-            options.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
-            option.classList.add('selected');
-            select.classList.remove('open');
-            activeSelect = null;
-        });
+        const trigger = select.querySelector('.custom-select-trigger'); const options = select.querySelector('.custom-options');
+        trigger.addEventListener('click', (e) => { e.stopPropagation(); if (activeSelect && activeSelect !== select) activeSelect.classList.remove('open'); select.classList.toggle('open'); activeSelect = select.classList.contains('open') ? select : null; });
+        options.addEventListener('click', (e) => { const option = e.target.closest('.custom-option'); if (!option) return; trigger.querySelector('span:first-child').textContent = option.textContent; options.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected')); option.classList.add('selected'); select.classList.remove('open'); activeSelect = null; });
     });
-
-    setTimeout(() => { document.addEventListener('click', function closeMenu(e) { 
-        if (!menu.contains(e.target) && e.target !== btn) { menu.remove(); document.removeEventListener('click', closeMenu); } 
-    }); }, 100);
+    setTimeout(() => { document.addEventListener('click', function closeMenu(e) { if (!menu.contains(e.target) && e.target !== btn) { menu.remove(); document.removeEventListener('click', closeMenu); } }); }, 100);
 }
-
 async function doRandomAnime() {
     const genre = document.querySelector('#random-select-genre .custom-option.selected')?.dataset.value || '';
     const theme = document.querySelector('#random-select-theme .custom-option.selected')?.dataset.value || '';
     const year = document.querySelector('#random-select-year .custom-option.selected')?.dataset.value || '';
     const rating = document.querySelector('#random-select-rating .custom-option.selected')?.dataset.value || '';
-    
-    document.getElementById('random-menu-popup')?.remove(); 
+    document.getElementById('random-menu-popup')?.remove();
     if (allReleasesCache.length === 0) await renderAllReleases();
-    
     const isAdultMode = storage.getSetting('adultMode', false);
-    
-    const filtered = allReleasesCache.filter(({ anime }) => { 
+    const filtered = allReleasesCache.filter(({ anime }) => {
         if (!isAdultMode && isAdult(anime)) return false;
-        
-        if (genre && !(anime.genres || []).some(g => (g.russian || g.name) === genre)) return false; 
-        if (theme && !(anime.genres || []).some(g => (g.russian || g.name) === theme)) return false; 
-        if (year && (!anime.aired_on || anime.aired_on.split('-')[0] !== year)) return false; 
+        if (genre && !(anime.genres || []).some(g => (g.russian || g.name) === genre)) return false;
+        if (theme && !(anime.genres || []).some(g => (g.russian || g.name) === theme)) return false;
+        if (year && (!anime.aired_on || anime.aired_on.split('-')[0] !== year)) return false;
         if (rating && anime.rating !== rating) return false;
-        
-        return true; 
+        return true;
     });
-    
     if (filtered.length === 0) { showAlert('Нет аниме с такими параметрами! Попробуй другие.', 'Пусто'); return; }
-    const randomItem = filtered[Math.floor(Math.random() * filtered.length)]; 
+    const randomItem = filtered[Math.floor(Math.random() * filtered.length)];
     const videoData = API.findVideoAnime(randomItem.id);
     openAnimePage(videoData || { shikimoriId: randomItem.id });
 }
