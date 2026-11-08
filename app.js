@@ -19,9 +19,7 @@ let pendingResumeTime = 0;
 let scrollPositions = { catalog: 0, schedule: 0, all: 0, favorites: 0, history: 0 };
 
 // ================== GOOGLE PICKER ==================
-const GOOGLE_API_KEY = 'AIzaSyAkK6b1KH9tq9OoESAiXZrkmJ1al6g3tyA';
-const GOOGLE_CLIENT_ID = '8657706485-0pmnnurvocnkof9ukbgosmk6hau31obc.apps.googleusercontent.com';
-const GOOGLE_APP_ID = '8657706485';
+
 // ИСПОЛЬЗУЕМ ТОЛЬКО drive.readonly ДЛЯ ВЕБ-ВЕРСИИ
 const GOOGLE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 
