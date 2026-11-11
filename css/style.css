@@ -1539,6 +1539,18 @@ html { height: 100%; }
     animation: fadeIn 0.2s ease;
 }
 
+@media (max-width: 768px) and (orientation: portrait) {
+    .player-overlay {
+        inset: auto;
+        top: 50%;
+        left: 50%;
+        width: 100dvh;
+        height: 100vw;
+        transform: translate(-50%, -50%) rotate(90deg);
+        transform-origin: center;
+    }
+}
+
 /* Контейнер плеера в настоящем полноэкранном режиме окна: заполняет весь экран */
 .custom-player-wrapper.player-fullscreen {
     position: fixed !important;
@@ -1714,6 +1726,10 @@ html { height: 100%; }
 .custom-player-wrapper.controls-hidden:not(.paused) .player-controls {
     opacity: 0;
     transform: translateY(8px);
+}
+.custom-player-wrapper.controls-hidden:not(.paused),
+.custom-player-wrapper.controls-hidden:not(.paused) * {
+    cursor: none !important;
 }
 
 .player-top-info {
