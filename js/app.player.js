@@ -12,9 +12,20 @@ function saveCurrentPosition() {
     if (!video || !currentAnime || currentEpisodeNumber === null) return;
     const dur = video.duration;
     if (video.ended || (isFinite(dur) && dur > 0 && video.currentTime > dur - 5)) {
-        storage.clearPlaybackPosition(currentAnime.id, currentEpisodeNumber);
+        storage.clearAllPlaybackPositions(currentAnime.id);
+        if (window.YamikoeCloudSync) window.YamikoeCloudSync.clearProgress(currentAnime.id);
     } else {
         storage.setPlaybackPosition(currentAnime.id, currentEpisodeNumber, video.currentTime, dur);
+        if (video.currentTime > 3 && window.YamikoeCloudSync) {
+            window.YamikoeCloudSync.savePlaybackProgress({
+                anime_id: currentAnime.id,
+                anime_title: currentAnime.title,
+                poster_url: currentAnime.poster_url,
+                episode: currentEpisodeNumber,
+                position_seconds: video.currentTime,
+                duration_seconds: isFinite(dur) && dur > 0 ? dur : 0
+            });
+        }
     }
 }
 
@@ -122,6 +133,7 @@ async function playEpisode(number, event) {
     currentEpisodeNumber = number;
     openPlayerOverlay();
     renderPlayer(ep, number);
+    if (window.matchMedia('(max-width: 768px)').matches) setAppFullscreen(true);
 }
 
 
@@ -633,6 +645,14 @@ function initPlayerLogic(session, ep, number) {
         updateBuffered();
         if (video.readyState >= 3) bufferingEl.classList.remove('visible');
     });
+    listen(video, 'pause', saveCurrentPosition);
+    listen(document, 'visibilitychange', () => {
+        if (document.visibilityState === 'hidden') saveCurrentPosition();
+    });
+    const cloudProgressTimer = setInterval(() => {
+        if (!video.paused && alive()) saveCurrentPosition();
+    }, 12000);
+    session.cleanups.push(() => clearInterval(cloudProgressTimer));
     listen(video, 'progress', updateBuffered);
     listen(video, 'seeked', () => { lastTime = video.currentTime; });
 
@@ -683,7 +703,8 @@ function initPlayerLogic(session, ep, number) {
     // ---------- Конец серии ----------
     listen(video, 'ended', () => {
         if (!alive()) return;
-        storage.clearPlaybackPosition(currentAnime.id, number);
+        storage.clearAllPlaybackPositions(currentAnime.id);
+        if (window.YamikoeCloudSync) window.YamikoeCloudSync.clearProgress(currentAnime.id);
         ensureWatched(number);
         if (hasNext && storage.getSetting('autoplayNext', true)) {
             playEpisode(episodes[idx + 1].number);
@@ -915,7 +936,7 @@ function initPlayerLogic(session, ep, number) {
         const tag = document.activeElement ? document.activeElement.tagName : '';
         if (tag === 'INPUT' || tag === 'TEXTAREA') return;
         if (e.ctrlKey || e.metaKey || e.altKey) return;
-        const modalOpen = ['custom-confirm', 'custom-alert', 'settings-modal', 'bindings-modal']
+        const modalOpen = ['custom-confirm', 'custom-alert', 'settings-modal', 'bindings-modal', 'auth-modal']
             .some(id => { const el = document.getElementById(id); return el && el.style.display !== 'none'; });
         if (modalOpen) return;
 

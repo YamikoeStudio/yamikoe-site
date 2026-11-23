@@ -67,6 +67,7 @@ async function renderMainPage() {
 // ================== ПРОДОЛЖИТЬ ПРОСМОТР ==================
 let continueRenderToken = 0;
 async function renderContinueWatching() {
+    if (window.YamikoeCloudSync) await window.YamikoeCloudSync.refreshCloudProgress();
     const token = ++continueRenderToken;
     const title = document.getElementById('continue-watching-title');
     const grid = document.getElementById('continue-watching-grid');
@@ -295,6 +296,7 @@ function resetFilters() {
 // ================== ИЗБРАННОЕ ==================
 function handleToggleFavorite(event, id, title, imgUrl) {
     if (event) event.stopPropagation(); const isNowFav = storage.toggleFavorite({ id, title, image: imgUrl });
+    if (window.YamikoeCloudSync) window.YamikoeCloudSync.updateFavorite({ id, title, image: imgUrl }, isNowFav);
     document.querySelectorAll('.anime-card').forEach(card => { if (String(card.dataset.id) !== String(id)) return; const btn = card.querySelector('.favorite-btn'); if (!btn) return; btn.classList.toggle('active', isNowFav); btn.textContent = isNowFav ? '★' : '☆'; });
     const relBtn = document.querySelector('.fav-release-btn'); if (relBtn && String(relBtn.dataset.id) === String(id)) { relBtn.classList.toggle('active', isNowFav); relBtn.textContent = isNowFav ? 'В избранном' : 'В избранное'; }
 }
@@ -334,10 +336,27 @@ function renderHistory() {
         }
     })();
 }
-async function clearAnimeHistory() { if (!await showConfirm('Очистить историю?', 'Очистка')) return; storage.clearHistory(); renderHistory(); }
+async function clearAnimeHistory() {
+    if (!await showConfirm('Очистить историю?', 'Очистка')) return;
+    if (window.YamikoeCloudSync) await window.YamikoeCloudSync.ensureSynced();
+    storage.clearHistory();
+    storage.clearAllPlaybackPositions();
+    if (window.YamikoeCloudSync) window.YamikoeCloudSync.clearHistory();
+    renderHistory();
+    renderContinueWatching();
+}
 async function resetAllWatched() { if (!await showConfirm('Сбросить весь прогресс?', 'Сброс')) return; storage.resetAllWatched(); showAlert('Прогресс сброшен!'); if (currentAnime) openAnimePage({ shikimoriId: currentAnime.id }); }
 function toggleDeleteMode() { deleteMode = !deleteMode; const btn = document.getElementById('btn-toggle-delete'); if (btn) { btn.classList.toggle('active-delete', deleteMode); btn.textContent = deleteMode ? 'Выйти из удаления' : 'Режим удаления'; } renderHistory(); }
-async function removeFromHistory(event, id) { event.stopPropagation(); if (!await showConfirm('Удалить из истории?', 'Удаление')) return; storage.removeFromHistory(id); renderHistory(); }
+async function removeFromHistory(event, id) {
+    event.stopPropagation();
+    if (!await showConfirm('Удалить из истории?', 'Удаление')) return;
+    if (window.YamikoeCloudSync) await window.YamikoeCloudSync.ensureSynced();
+    storage.removeFromHistory(id);
+    storage.clearAllPlaybackPositions(id);
+    if (window.YamikoeCloudSync) window.YamikoeCloudSync.clearHistory(id);
+    renderHistory();
+    renderContinueWatching();
+}
 
 // ================== СТРАНИЦА РЕЛИЗА ==================
 function getDescription(animeMeta, fullVideoData) {
@@ -353,12 +372,13 @@ function formatTime(seconds) {
 }
 
 async function openAnimePage(item) {
+    if (window.YamikoeCloudSync) await window.YamikoeCloudSync.refreshCloudProgress();
     const id = String(item.shikimoriId || item.id); if (id === 'null') return;
     const fullVideoData = API.findVideoAnime(id); const meta = await API.getAnimeMeta(id);
     let episodes = fullVideoData?.episodes || [];
-    currentAnime = { id, title: meta?.russian || meta?.name || 'Без названия', episodes: episodes };
     let posterUrl = '';
     if (meta?.image && meta.image.original) { posterUrl = meta.image.original.startsWith('http') ? meta.image.original : `https://shikimori.one${meta.image.original}`; }
+    currentAnime = { id, title: meta?.russian || meta?.name || 'Без названия', episodes: episodes, poster_url: posterUrl };
     if (posterUrl && currentAnime.title !== "Без названия") { storage.addToHistory({ id, title: currentAnime.title, image: posterUrl }); }
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.getElementById('release-page')?.remove();

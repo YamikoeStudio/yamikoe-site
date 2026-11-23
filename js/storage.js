@@ -22,7 +22,13 @@ class StorageManager {
             try {
                 const parsed = JSON.parse(raw);
                 if (parsed.schemaVersion !== SCHEMA_VERSION) this.migrate(parsed);
-                else this.cache = parsed.data;
+                else {
+                    this.cache = parsed.data;
+                    if (!this.cache.playbackUpdatedAt) {
+                        this.cache.playbackUpdatedAt = {};
+                        this.save();
+                    }
+                }
             } catch (e) {
                 console.warn('[Storage] Битый JSON. Сброс к заводским настройкам.', e);
                 this.cache = this.getDefaultData();
@@ -46,6 +52,7 @@ class StorageManager {
             searchHistory: [],
             playbackPositions: {}, // { "animeId": { "1": 123.4, "2": 55.0 } }
             playbackDurations: {}, // { "animeId": { "1": 1440.0 } } — для расчёта процента в «Продолжить просмотр»
+            playbackUpdatedAt: {},
             settings: {
                 autoplayNext: true,
                 skipOpening: 90,
@@ -67,6 +74,7 @@ class StorageManager {
             if (typeof oldData.data.watched === 'object') this.cache.watched = oldData.data.watched;
             if (typeof oldData.data.playbackPositions === 'object') this.cache.playbackPositions = oldData.data.playbackPositions;
             if (oldData.data.playbackDurations && typeof oldData.data.playbackDurations === 'object') this.cache.playbackDurations = oldData.data.playbackDurations;
+            if (oldData.data.playbackUpdatedAt && typeof oldData.data.playbackUpdatedAt === 'object') this.cache.playbackUpdatedAt = oldData.data.playbackUpdatedAt;
             if (oldData.data.settings && typeof oldData.data.settings === 'object') {
                 this.cache.settings = { ...this.cache.settings, ...oldData.data.settings };
             }
@@ -87,6 +95,7 @@ class StorageManager {
     }
 
     getFavorites() { return this.cache.favorites || []; }
+    replaceFavorites(favorites) { this.cache.favorites = favorites; this.save(); }
     isFavorite(id) { return this.getFavorites().some(f => String(f.id) === String(id)); }
     toggleFavorite(anime) {
         const idx = this.cache.favorites.findIndex(f => String(f.id) === String(anime.id));
@@ -101,6 +110,7 @@ class StorageManager {
     }
 
     getHistory() { return this.cache.history || []; }
+    replaceHistory(history) { this.cache.history = history; this.save(); }
     addToHistory(anime) {
         this.cache.history = this.cache.history.filter(h => String(h.id) !== String(anime.id));
         this.cache.history.unshift({ ...anime, timestamp: Date.now() });
@@ -167,29 +177,71 @@ class StorageManager {
     setPlaybackPosition(animeId, epNum, seconds, duration) {
         if (!this.cache.playbackPositions) this.cache.playbackPositions = {};
         if (!this.cache.playbackDurations) this.cache.playbackDurations = {};
+        if (!this.cache.playbackUpdatedAt) this.cache.playbackUpdatedAt = {};
         const aId = String(animeId);
         if (!this.cache.playbackPositions[aId]) this.cache.playbackPositions[aId] = {};
+        if (!this.cache.playbackUpdatedAt[aId]) this.cache.playbackUpdatedAt[aId] = {};
         if (seconds && seconds > 3) {
             this.cache.playbackPositions[aId][String(epNum)] = seconds;
+            this.cache.playbackUpdatedAt[aId][String(epNum)] = Date.now();
             if (duration && isFinite(duration) && duration > 0) {
                 if (!this.cache.playbackDurations[aId]) this.cache.playbackDurations[aId] = {};
                 this.cache.playbackDurations[aId][String(epNum)] = duration;
             }
         } else {
             delete this.cache.playbackPositions[aId][String(epNum)];
+            delete this.cache.playbackUpdatedAt[aId][String(epNum)];
             if (this.cache.playbackDurations[aId]) delete this.cache.playbackDurations[aId][String(epNum)];
         }
         this.save();
     }
 
     clearPlaybackPosition(animeId, epNum) {
-        if (!this.cache.playbackPositions) return;
         const aId = String(animeId);
         if (this.cache.playbackPositions[aId]) {
             delete this.cache.playbackPositions[aId][String(epNum)];
         }
+        if (this.cache.playbackUpdatedAt && this.cache.playbackUpdatedAt[aId]) {
+            delete this.cache.playbackUpdatedAt[aId][String(epNum)];
+        }
         if (this.cache.playbackDurations && this.cache.playbackDurations[aId]) {
             delete this.cache.playbackDurations[aId][String(epNum)];
+        }
+        this.save();
+    }
+
+    clearAllPlaybackPositions(animeId) {
+        if (animeId === undefined || animeId === null) {
+            this.cache.playbackPositions = {};
+            this.cache.playbackDurations = {};
+            this.cache.playbackUpdatedAt = {};
+        } else {
+            const key = String(animeId);
+            if (this.cache.playbackPositions) delete this.cache.playbackPositions[key];
+            if (this.cache.playbackDurations) delete this.cache.playbackDurations[key];
+            if (this.cache.playbackUpdatedAt) delete this.cache.playbackUpdatedAt[key];
+        }
+        this.save();
+    }
+
+    getPlaybackUpdatedAt(animeId, epNum) {
+        const timestamps = this.cache.playbackUpdatedAt && this.cache.playbackUpdatedAt[String(animeId)];
+        return timestamps ? Number(timestamps[String(epNum)]) || 0 : 0;
+    }
+
+    replaceCloudPlaybackProgress(animeId, epNum, seconds, duration, updatedAt) {
+        const animeKey = String(animeId);
+        const episodeKey = String(epNum);
+        if (!this.cache.playbackPositions) this.cache.playbackPositions = {};
+        if (!this.cache.playbackDurations) this.cache.playbackDurations = {};
+        if (!this.cache.playbackUpdatedAt) this.cache.playbackUpdatedAt = {};
+        this.cache.playbackPositions[animeKey] = {};
+        this.cache.playbackDurations[animeKey] = {};
+        this.cache.playbackUpdatedAt[animeKey] = {};
+        if (Number(seconds) > 3) {
+            this.cache.playbackPositions[animeKey][episodeKey] = Number(seconds);
+            this.cache.playbackUpdatedAt[animeKey][episodeKey] = Date.parse(updatedAt) || Date.now();
+            if (Number(duration) > 0) this.cache.playbackDurations[animeKey][episodeKey] = Number(duration);
         }
         this.save();
     }
@@ -203,6 +255,7 @@ class StorageManager {
                 this.cache = parsed;
                 if (!this.cache.playbackPositions) this.cache.playbackPositions = {};
                 if (!this.cache.playbackDurations) this.cache.playbackDurations = {};
+                if (!this.cache.playbackUpdatedAt) this.cache.playbackUpdatedAt = {};
                 if (!this.cache.searchHistory) this.cache.searchHistory = [];
                 if (!this.cache.watched) this.cache.watched = {};
                 if (!this.cache.settings) this.cache.settings = { autoplayNext: true, skipOpening: 90, skipEnding: 90, skipTime: 90, playbackRate: 1, volume: 1, muted: false };

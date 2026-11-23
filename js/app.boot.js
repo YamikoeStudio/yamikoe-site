@@ -57,6 +57,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }) : Promise.resolve();
 
     applyGridSettings();
+    try {
+        await window.YamikoeSupabase.initialize();
+    } catch (error) {
+        console.error('[Supabase] Не удалось восстановить сессию: ' + String(error && error.message || error), error);
+    }
+
     if (window.electronAPI && window.electronAPI.onRefresh) {
         window.electronAPI.onRefresh(async () => {
             await API.init(); allReleasesCache = []; filtersInitialized = false;
@@ -85,13 +91,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 function updateMobileNav() {
     const isMobile = window.innerWidth <= 768;
     const mobileNav = document.getElementById('mobile-nav');
-    const desktopHeader = document.getElementById('desktop-header');
     if (isMobile) {
         if (mobileNav) mobileNav.style.display = 'flex';
-        if (desktopHeader) desktopHeader.style.display = 'none';
     } else {
         if (mobileNav) mobileNav.style.display = 'none';
-        if (desktopHeader) desktopHeader.style.display = 'flex';
     }
 }
 
@@ -123,6 +126,7 @@ function switchTab(tab) {
     }
     if (tab === 'favorites') renderFavorites();
     if (tab === 'catalog') renderContinueWatching();
+    if (tab === 'profile') renderProfile();
     
     const releasePage = document.getElementById('release-page'); if (releasePage) releasePage.remove();
     setTimeout(() => {

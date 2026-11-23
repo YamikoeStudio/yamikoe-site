@@ -65,6 +65,88 @@ function showAlert(message, title = 'Уведомление') {
 // ---------- Настройки сетки карточек ----------
 const GRID_COUNTS = [12, 24, 30, 48, 72];
 const GRID_ALIGNS = ['start', 'center', 'stretch'];
+let appVersionPromise = null;
+let releaseCheckInProgress = false;
+
+function loadCurrentAppVersion() {
+    if (APP_VERSION) return Promise.resolve(APP_VERSION);
+    if (!appVersionPromise) {
+        const versionRequest = window.electronAPI && typeof window.electronAPI.getAppVersion === 'function'
+            ? window.electronAPI.getAppVersion()
+            : location.protocol === 'file:'
+                ? Promise.resolve('')
+                : fetch('./app-version.json', { cache: 'no-store' }).then(response => {
+                    if (!response.ok) throw new Error(`Не удалось получить версию сайта (HTTP ${response.status}).`);
+                    return response.json();
+                }).then(data => data.version);
+        appVersionPromise = Promise.resolve(versionRequest).then(version => {
+            APP_VERSION = String(version || '').trim();
+            return APP_VERSION;
+        }).catch(error => {
+            appVersionPromise = null;
+            throw error;
+        });
+    }
+    return appVersionPromise;
+}
+
+function formatReleaseVersion(version) {
+    return String(version || '').trim().replace(/^v/i, '').replace(/^(\d+\.\d+)\.0$/, '$1');
+}
+
+function compareReleaseVersions(left, right) {
+    const leftParts = String(left).replace(/^v/i, '').split('.').map(part => parseInt(part, 10) || 0);
+    const rightParts = String(right).replace(/^v/i, '').split('.').map(part => parseInt(part, 10) || 0);
+    const length = Math.max(leftParts.length, rightParts.length);
+    for (let index = 0; index < length; index++) {
+        const difference = (leftParts[index] || 0) - (rightParts[index] || 0);
+        if (difference) return Math.sign(difference);
+    }
+    return 0;
+}
+
+async function checkLatestRelease() {
+    if (releaseCheckInProgress) return;
+    releaseCheckInProgress = true;
+    const currentElement = document.getElementById('app-version');
+    const latestElement = document.getElementById('latest-app-version');
+    const status = document.getElementById('release-update-status');
+
+    status.classList.remove('is-error');
+    status.textContent = 'Проверяем последнюю версию...';
+    latestElement.textContent = 'Проверка...';
+
+    try {
+        const currentVersion = await loadCurrentAppVersion();
+        currentElement.textContent = currentVersion ? 'v' + formatReleaseVersion(currentVersion) : 'Не определена';
+
+        if (!window.YamikoeReleaseTools) throw new Error('Не настроен источник GitHub Releases.');
+        const release = await window.YamikoeReleaseTools.fetchLatestRelease();
+        const latestVersion = String(release.tag_name || '').replace(/^v/i, '').trim();
+        if (!latestVersion) throw new Error('В ответе GitHub нет версии релиза.');
+
+        latestElement.textContent = 'v' + formatReleaseVersion(latestVersion);
+
+        if (!currentVersion) {
+            status.textContent = 'Последняя версия найдена. Текущую версию приложения определить не удалось.';
+        } else {
+            const comparison = compareReleaseVersions(latestVersion, currentVersion);
+            status.textContent = comparison > 0
+                ? `Доступно обновление до v${formatReleaseVersion(latestVersion)}.`
+                : comparison < 0
+                    ? 'Установленная версия новее последнего опубликованного релиза.'
+                    : 'Установлена актуальная версия.';
+        }
+    } catch (error) {
+        latestElement.textContent = 'Недоступна';
+        status.textContent = 'Не удалось проверить обновления: ' + String(error && error.message || error);
+        status.classList.add('is-error');
+        console.error('[Updates] Не удалось проверить GitHub Releases: ' + String(error && error.message || error), error);
+    } finally {
+        releaseCheckInProgress = false;
+    }
+}
+
 function applyGridSettings() {
     let size = parseInt(storage.getSetting('cardSize', 180), 10);
     if (!size || size < 140) size = 140;
@@ -124,9 +206,8 @@ function openSettings() {
     const adultCheckbox = document.getElementById('setting-adult-mode');
     if (adultCheckbox) adultCheckbox.checked = storage.getSetting('adultMode', false);
 
-    const ver = document.getElementById('app-version');
-    if (ver) ver.textContent = 'v' + APP_VERSION;
     document.getElementById('settings-modal').style.display = 'flex';
+    checkLatestRelease();
 }
 function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
 function toggleAutoplayNext(enabled) { storage.setSetting('autoplayNext', enabled); }
