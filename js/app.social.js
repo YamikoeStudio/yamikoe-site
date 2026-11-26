@@ -6,7 +6,11 @@
     var requestedFriendsAfterAuth = false;
     var overview = [];
     var activeFriend = null;
+    var activePublicProfile = null;
     var pendingShare = null;
+    var catalogQuery = '';
+    var catalogOffset = 0;
+    var catalogPageSize = 50;
     var heartbeatTimer = null;
     var overviewTimer = null;
     var messageTimer = null;
@@ -128,30 +132,97 @@
         return row;
     }
 
-    function renderSearchResults(users) {
+    function renderSearchResults(users, append, canLoadMore) {
         var container = element('social-search-results');
-        container.replaceChildren();
-        if (!users.length) {
+        if (!append) container.replaceChildren();
+        var oldMoreButton = container.querySelector('.social-catalog-more');
+        if (oldMoreButton) oldMoreButton.remove();
+        if (!users.length && !append) {
             var empty = document.createElement('p');
             empty.className = 'social-empty';
-            empty.textContent = 'Пользователи не найдены.';
+            empty.textContent = catalogQuery ? 'Пользователи не найдены.' : 'Пока нет пользователей в каталоге.';
             container.appendChild(empty);
             return;
         }
         users.forEach(function (user) {
             var relation = findRelation(user.id);
-            var actions;
+            var actions = [{ text: 'Профиль', name: 'open-profile' }];
             if (relation && relation.status === 'accepted') {
-                actions = [{ text: 'Открыть чат', name: 'open-chat' }];
+                actions.push({ text: 'Чат', name: 'open-chat' });
             } else if (relation && relation.status === 'pending' && relation.is_requester) {
-                actions = [{ text: 'Заявка отправлена', name: 'noop' }];
+                actions.push({ text: 'Заявка отправлена', name: 'noop' });
             } else if (relation && relation.status === 'pending') {
-                actions = [{ text: 'Принять', name: 'accept-request' }, { text: 'Отклонить', name: 'reject-request' }];
+                actions.push({ text: 'Принять', name: 'accept-request' }, { text: 'Отклонить', name: 'reject-request' });
             } else {
-                actions = [{ text: 'Добавить', name: 'send-request' }];
+                actions.push({ text: 'Добавить', name: 'send-request' });
             }
             container.appendChild(makeUserRow(user, relation, actions));
         });
+        if (canLoadMore) {
+            container.appendChild(makeButton(
+                'Показать ещё',
+                'catalog-more',
+                '',
+                'profile-action-btn profile-secondary-btn social-catalog-more'
+            ));
+        }
+    }
+
+    function renderPublicProfile(profile) {
+        activePublicProfile = profile;
+        var avatar = element('social-profile-avatar');
+        avatar.replaceChildren(makeAvatar(profile, 'social-avatar'));
+        element('social-profile-username').textContent = profile.username || 'Пользователь';
+        var presence = element('social-profile-presence');
+        presence.textContent = presenceLabel(profile.is_online);
+        presence.classList.toggle('is-online', !!profile.is_online);
+        element('social-profile-bio').textContent = profile.bio || 'Пользователь не добавил описание.';
+
+        var banner = element('social-profile-banner-image');
+        var bannerUrl = safeImageUrl(profile.banner_url);
+        banner.style.display = bannerUrl ? 'block' : 'none';
+        if (bannerUrl) {
+            banner.src = bannerUrl;
+            banner.onerror = function () { banner.style.display = 'none'; };
+        } else {
+            banner.removeAttribute('src');
+        }
+
+        var actions = element('social-profile-actions');
+        actions.replaceChildren();
+        var relation = findRelation(profile.id);
+        if (relation && relation.status === 'accepted') {
+            actions.appendChild(makeButton('Открыть чат', 'open-chat', profile.id));
+        } else if (relation && relation.status === 'pending' && relation.is_requester) {
+            actions.appendChild(makeButton('Заявка отправлена', 'noop', profile.id));
+        } else if (relation && relation.status === 'pending') {
+            actions.appendChild(makeButton('Принять заявку', 'accept-request', relation.friendship_id));
+            actions.appendChild(makeButton('Отклонить', 'reject-request', relation.friendship_id));
+        } else {
+            actions.appendChild(makeButton('Добавить в друзья', 'send-request', profile.id));
+        }
+
+        element('social-chat-empty').style.display = 'none';
+        element('social-chat-active').style.display = 'none';
+        element('social-profile-view').style.display = 'block';
+    }
+
+    async function openPublicProfile(userId) {
+        var result = await supabase().rpc('get_public_social_profile', { target_user_id: userId });
+        if (result.error) throw result.error;
+        var profile = result.data && result.data[0];
+        if (!profile) throw new Error('Профиль не найден или недоступен.');
+        renderPublicProfile(profile);
+    }
+
+    function closePublicProfile() {
+        activePublicProfile = null;
+        element('social-profile-view').style.display = 'none';
+        if (activeFriend) {
+            element('social-chat-active').style.display = 'flex';
+        } else {
+            element('social-chat-empty').style.display = 'flex';
+        }
     }
 
     function renderOverview() {
@@ -170,8 +241,8 @@
         }
         incoming.concat(outgoing).forEach(function (item) {
             var actions = item.is_requester
-                ? [{ text: 'Отменить', name: 'reject-request' }]
-                : [{ text: 'Принять', name: 'accept-request' }, { text: 'Отклонить', name: 'reject-request' }];
+                ? [{ text: 'Профиль', name: 'open-profile' }, { text: 'Отменить', name: 'reject-request' }]
+                : [{ text: 'Профиль', name: 'open-profile' }, { text: 'Принять', name: 'accept-request' }, { text: 'Отклонить', name: 'reject-request' }];
             requests.appendChild(makeUserRow(item, item, actions));
         });
 
@@ -184,6 +255,7 @@
         }
         accepted.forEach(function (item) {
             var row = makeUserRow(item, item, [
+                { text: 'Профиль', name: 'open-profile' },
                 { text: activeFriend && activeFriend.user_id === item.user_id ? 'Открыт' : 'Чат', name: 'open-chat' }
             ]);
             row.classList.add('social-friend-row');
@@ -197,6 +269,7 @@
         if (result.error) throw result.error;
         overview = result.data || [];
         renderOverview();
+        if (activePublicProfile) renderPublicProfile(activePublicProfile);
         if (activeFriend) {
             var fresh = overview.find(function (item) {
                 return item.user_id === activeFriend.user_id && item.status === 'accepted';
@@ -221,8 +294,10 @@
 
     function closeChat() {
         activeFriend = null;
+        activePublicProfile = null;
         lastMessageId = null;
         element('social-chat-active').style.display = 'none';
+        element('social-profile-view').style.display = 'none';
         element('social-chat-empty').style.display = 'flex';
         if (messageTimer) window.clearInterval(messageTimer);
         messageTimer = null;
@@ -235,7 +310,9 @@
         });
         if (!friend) return;
         activeFriend = friend;
+        activePublicProfile = null;
         lastMessageId = null;
+        element('social-profile-view').style.display = 'none';
         element('social-chat-empty').style.display = 'none';
         element('social-chat-active').style.display = 'flex';
         element('social-messages').replaceChildren();
@@ -249,7 +326,7 @@
         }
         if (messageTimer) window.clearInterval(messageTimer);
         messageTimer = window.setInterval(function () {
-            if (!isFriendsSectionVisible()) return;
+            if (!isFriendsSectionVisible() || element('social-chat-active').style.display === 'none') return;
             loadMessages().catch(function (error) { reportError(error, 'обновить переписку'); });
         }, 5000);
     }
@@ -278,14 +355,17 @@
         subtitle.textContent = share.kind === 'episode' ? 'Серия ' + share.episode : 'Аниме';
         details.append(title, subtitle);
         card.appendChild(details);
-        if (share.kind === 'episode') {
-            var playButton = makeButton('Открыть серию', 'play-shared', '', 'social-play-shared');
-            playButton.dataset.animeId = share.id;
-            playButton.dataset.animeTitle = share.title;
-            playButton.dataset.animePoster = share.poster_url || '';
-            playButton.dataset.episode = String(share.episode);
-            card.appendChild(playButton);
-        }
+        var openButton = makeButton(
+            share.kind === 'episode' ? 'Открыть серию' : 'Открыть аниме',
+            share.kind === 'episode' ? 'play-shared' : 'open-shared-anime',
+            '',
+            'social-play-shared'
+        );
+        openButton.dataset.animeId = share.id;
+        openButton.dataset.animeTitle = share.title;
+        openButton.dataset.animePoster = share.poster_url || '';
+        if (share.kind === 'episode') openButton.dataset.episode = String(share.episode);
+        card.appendChild(openButton);
         return card;
     }
 
@@ -338,12 +418,12 @@
         }
     }
 
-    function getCurrentShare() {
+    function getCurrentShare(forceAnime) {
         if (typeof currentAnime === 'undefined' || !currentAnime) return null;
         var id = String(currentAnime.id || '');
         var title = String(currentAnime.title || '').trim().slice(0, 200);
         if (!id || !title) return null;
-        var episode = typeof currentEpisodeNumber !== 'undefined' ? Number(currentEpisodeNumber) : 0;
+        var episode = !forceAnime && typeof currentEpisodeNumber !== 'undefined' ? Number(currentEpisodeNumber) : 0;
         var share = {
             kind: Number.isInteger(episode) && episode > 0 ? 'episode' : 'anime',
             id: id.slice(0, 100),
@@ -373,6 +453,8 @@
         if (playerOverlay && playerOverlay.style.display !== 'none' && typeof window.closePlayerOverlay === 'function') {
             window.closePlayerOverlay();
         }
+        var releasePage = element('release-page');
+        if (releasePage) releasePage.remove();
         window.openFriends();
         updateSharePreview();
     }
@@ -397,6 +479,18 @@
         var id = button.dataset.id;
         try {
             if (action === 'noop') return;
+            if (action === 'open-profile') {
+                await openPublicProfile(id);
+                return;
+            }
+            if (action === 'catalog-more') {
+                await searchUsers(catalogQuery, true);
+                return;
+            }
+            if (action === 'close-profile') {
+                closePublicProfile();
+                return;
+            }
             if (action === 'open-chat') {
                 var relation = findRelation(id);
                 if (relation && relation.status === 'accepted') await openChat(id);
@@ -421,18 +515,26 @@
             }
             setMessage('social-status', action === 'send-request' ? 'Заявка отправлена.' : 'Список друзей обновлён.', false);
             await refreshOverview();
-            var query = element('social-search-input').value.trim();
-            if (query.length >= 2) await searchUsers(query);
+            await searchUsers(catalogQuery, false);
         } catch (error) {
             reportError(error, 'обновить список друзей');
         }
     }
 
-    async function searchUsers(term) {
+    async function searchUsers(term, append) {
         setMessage('social-error', '');
-        var result = await supabase().rpc('search_social_users', { search_term: term });
+        if (!append) {
+            catalogQuery = String(term || '').trim();
+            catalogOffset = 0;
+        }
+        var result = await supabase().rpc('list_social_users', {
+            search_term: catalogQuery || null,
+            result_offset: append ? catalogOffset : 0
+        });
         if (result.error) throw result.error;
-        renderSearchResults(result.data || []);
+        var users = result.data || [];
+        catalogOffset = append ? catalogOffset + users.length : users.length;
+        renderSearchResults(users, !!append, users.length === catalogPageSize);
     }
 
     async function openFriends() {
@@ -446,6 +548,7 @@
         setMessage('social-error', '');
         try {
             await refreshOverview();
+            await searchUsers('', false);
             updateSharePreview();
         } catch (error) {
             reportError(error, 'загрузить друзей');
@@ -465,6 +568,9 @@
             element('social-requests').replaceChildren();
             element('social-friends').replaceChildren();
             element('social-search-results').replaceChildren();
+            catalogQuery = '';
+            catalogOffset = 0;
+            element('social-search-input').value = '';
             return;
         }
         supabase().rpc('record_social_presence').then(function (result) {
@@ -536,6 +642,26 @@
         controls.appendChild(button);
     }
 
+    function installTitleShareButton() {
+        var page = element('release-page');
+        var favoriteButton = page && page.querySelector('.fav-release-btn');
+        if (!favoriteButton || page.querySelector('.social-title-share-btn')) return;
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'fav-release-btn social-title-share-btn';
+        button.textContent = 'Поделиться';
+        button.title = 'Поделиться аниме с другом';
+        button.addEventListener('click', function () {
+            var share = getCurrentShare(true);
+            if (!share) {
+                setMessage('social-error', 'Не удалось получить данные этого аниме.', true);
+                return;
+            }
+            openFriendsWithShare(share);
+        });
+        favoriteButton.insertAdjacentElement('afterend', button);
+    }
+
     function installAuthDeepLinkHandler() {
         if (!window.electronAPI || typeof window.electronAPI.onAuthDeepLink !== 'function') return;
         window.electronAPI.onAuthDeepLink(async function (link) {
@@ -557,19 +683,27 @@
         element('social-search-form').addEventListener('submit', async function (event) {
             event.preventDefault();
             var query = element('social-search-input').value.trim();
-            if (query.length < 2) {
+            if (query.length === 1) {
                 setMessage('social-status', 'Введите не менее двух символов никнейма.', true);
                 return;
             }
             try {
-                setMessage('social-status', 'Ищем пользователей…');
-                await searchUsers(query);
+                setMessage('social-status', query ? 'Ищем пользователей…' : 'Загружаем каталог людей…');
+                await searchUsers(query, false);
                 setMessage('social-status', '');
             } catch (error) {
                 reportError(error, 'найти пользователей');
             }
         });
         element('social-search-results').addEventListener('click', handleSocialAction);
+        element('social-search-results').addEventListener('click', function (event) {
+            if (event.target.closest('button')) return;
+            var row = event.target.closest('.social-user-row');
+            if (!row || !row.dataset.userId) return;
+            openPublicProfile(row.dataset.userId).catch(function (error) {
+                reportError(error, 'открыть профиль пользователя');
+            });
+        });
         element('social-requests').addEventListener('click', handleSocialAction);
         element('social-friends').addEventListener('click', handleSocialAction);
         element('social-friends').addEventListener('click', function (event) {
@@ -577,6 +711,8 @@
             var row = event.target.closest('.social-user-row');
             if (row && row.dataset.userId) openChat(row.dataset.userId);
         });
+        element('social-profile-back').addEventListener('click', closePublicProfile);
+        element('social-profile-actions').addEventListener('click', handleSocialAction);
         element('social-message-form').addEventListener('submit', async function (event) {
             event.preventDefault();
             var input = element('social-message-input');
@@ -611,14 +747,23 @@
             }
         });
         element('social-messages').addEventListener('click', function (event) {
-            var button = event.target.closest('[data-social-action="play-shared"]');
+            var button = event.target.closest('[data-social-action]');
             if (!button) return;
-            playSharedEpisode({
-                id: button.dataset.animeId,
-                title: button.dataset.animeTitle,
-                poster_url: button.dataset.animePoster,
-                episode: Number(button.dataset.episode)
-            });
+            if (button.dataset.socialAction === 'play-shared') {
+                playSharedEpisode({
+                    id: button.dataset.animeId,
+                    title: button.dataset.animeTitle,
+                    poster_url: button.dataset.animePoster,
+                    episode: Number(button.dataset.episode)
+                });
+            } else if (button.dataset.socialAction === 'open-shared-anime') {
+                if (typeof window.openAnimePage !== 'function') {
+                    reportError(new Error('Страница аниме не загружена.'), 'открыть аниме');
+                    return;
+                }
+                Promise.resolve(window.openAnimePage({ id: button.dataset.animeId }))
+                    .catch(function (error) { reportError(error, 'открыть аниме'); });
+            }
         });
         document.querySelector('.profile-sidebar').addEventListener('click', function (event) {
             var button = event.target.closest('[data-profile-section]');
@@ -639,9 +784,13 @@
         window.openProfileSection = openProfileSection;
         window.selectProfileSection = selectProfileSection;
         if (window.YamikoeSupabase) renderAuthState();
-        var observer = new MutationObserver(installPlayerShareButton);
+        var observer = new MutationObserver(function () {
+            installPlayerShareButton();
+            installTitleShareButton();
+        });
         observer.observe(document.body, { childList: true, subtree: true });
         installPlayerShareButton();
+        installTitleShareButton();
     });
 
     window.YamikoeSocial = {

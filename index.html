@@ -6,7 +6,7 @@
     <title>Yamikoe Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=5.1.0">
 </head>
 <body data-theme="purple">
 
@@ -250,10 +250,11 @@
                                     <h2 class="section-title">Друзья и чаты</h2>
                                     <div id="friends-content" class="social-layout" style="display: none;">
                                         <aside class="social-sidebar">
+                                            <h3 class="social-list-title">Каталог людей</h3>
                                             <form id="social-search-form" class="social-search-form">
-                                                <label for="social-search-input">Найти пользователя</label>
+                                                <label for="social-search-input">Поиск по никнейму</label>
                                                 <div class="social-search-row">
-                                                    <input id="social-search-input" type="search" minlength="2" maxlength="24" placeholder="Никнейм">
+                                                    <input id="social-search-input" type="search" maxlength="24" placeholder="Любой никнейм или оставьте пустым">
                                                     <button class="profile-action-btn" type="submit">Найти</button>
                                                 </div>
                                             </form>
@@ -266,6 +267,23 @@
                                         </aside>
                                         <section class="social-chat">
                                             <div id="social-chat-empty" class="social-chat-empty">Выберите друга слева, чтобы открыть чат.</div>
+                                            <div id="social-profile-view" class="social-profile-view" style="display: none;">
+                                                <button id="social-profile-back" class="profile-action-btn profile-secondary-btn social-profile-back" type="button">← Назад к каталогу</button>
+                                                <div class="social-profile-banner">
+                                                    <img id="social-profile-banner-image" alt="" style="display: none;">
+                                                </div>
+                                                <div class="social-profile-content">
+                                                    <div class="social-profile-heading">
+                                                        <div id="social-profile-avatar"></div>
+                                                        <div>
+                                                            <h3 id="social-profile-username"></h3>
+                                                            <span id="social-profile-presence"></span>
+                                                        </div>
+                                                    </div>
+                                                    <p id="social-profile-bio" class="social-profile-bio"></p>
+                                                    <div id="social-profile-actions" class="social-profile-actions"></div>
+                                                </div>
+                                            </div>
                                             <div id="social-chat-active" class="social-chat-active" style="display: none;">
                                                 <header class="social-chat-header">
                                                     <div class="social-avatar" id="social-chat-avatar"></div>

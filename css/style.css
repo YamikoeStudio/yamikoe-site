@@ -3017,7 +3017,7 @@ html { height: 100%; }
     border-radius: 16px;
     background: rgba(18, 12, 27, 0.82);
 }
-.social-sidebar { padding: 18px; }
+.social-sidebar { max-height: 620px; overflow-y: auto; padding: 18px; }
 .social-search-form label { display: block; margin-bottom: 8px; color: #d7cce8; font-size: 13px; font-weight: 700; }
 .social-search-row { display: flex; gap: 8px; }
 .social-search-row input, .social-message-form textarea {
@@ -3066,9 +3066,24 @@ html { height: 100%; }
 .social-presence.is-online, #social-chat-presence.is-online { color: #7ee6a5; }
 .social-user-row .profile-action-btn { flex: 0 0 auto; width: auto; margin: 0; padding: 7px 9px; font-size: 11px; }
 .social-empty { margin: 0; padding: 8px 2px; color: #988ba6; font-size: 12px; }
+.social-catalog-more { width: 100%; margin-top: 6px; }
 .social-chat { display: flex; flex-direction: column; overflow: hidden; }
 .social-chat-empty { display: flex; flex: 1; align-items: center; justify-content: center; padding: 32px; color: #a99bb9; text-align: center; line-height: 1.6; }
 .social-chat-active { flex: 1; flex-direction: column; min-height: 0; }
+.social-profile-view { flex: 1; min-height: 0; overflow-y: auto; }
+.social-profile-back { margin: 14px; }
+.social-profile-banner { height: 180px; overflow: hidden; background: linear-gradient(120deg, #281747, #13101b 70%); }
+.social-profile-banner img { width: 100%; height: 100%; object-fit: cover; }
+.social-profile-content { padding: 22px; }
+.social-profile-heading { display: flex; align-items: center; gap: 14px; }
+.social-profile-heading > div:last-child { display: flex; flex-direction: column; gap: 6px; }
+.social-profile-heading h3 { margin: 0; color: #fff; font-size: 20px; overflow-wrap: anywhere; }
+#social-profile-avatar .social-avatar { width: 76px; height: 76px; flex-basis: 76px; font-size: 24px; }
+#social-profile-presence { color: #a99bb9; font-size: 12px; }
+#social-profile-presence.is-online { color: #7ee6a5; }
+.social-profile-bio { margin: 20px 0; color: #cbbdda; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.social-profile-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.social-profile-actions .profile-action-btn { width: auto; margin: 0; }
 .social-chat-header { display: flex; align-items: center; gap: 12px; padding: 15px 18px; border-bottom: 1px solid rgba(168, 85, 247, 0.16); }
 .social-chat-header > div:last-child { display: flex; flex-direction: column; gap: 4px; }
 .social-chat-header strong { color: #fff; font-size: 15px; }
@@ -3098,6 +3113,7 @@ html { height: 100%; }
     .profile-sidebar { flex-direction: row; overflow-x: auto; }
     .profile-sidebar-btn { width: auto; flex: 0 0 auto; }
     .social-layout { grid-template-columns: 1fr; min-height: 0; }
+    .social-sidebar { max-height: none; }
     .social-chat { min-height: 480px; }
     .social-messages { max-height: 46vh; }
 }
