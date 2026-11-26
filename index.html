@@ -194,50 +194,104 @@
                     <button class="profile-action-btn profile-secondary-btn" type="button" onclick="openAuthModal('register')">Создать аккаунт</button>
                 </div>
                 <div id="profile-content" style="display: none;">
-                    <div class="profile-card">
-                        <div class="profile-banner">
-                            <img id="profile-banner-image" alt="">
-                        </div>
-                        <div class="profile-identity">
-                            <div class="profile-avatar">
-                                <img id="profile-avatar-image" alt="">
-                                <span id="profile-avatar-fallback"></span>
-                            </div>
-                            <div class="profile-identity-info">
-                                <h2 id="profile-username"></h2>
-                                <span id="profile-membership" class="profile-membership"></span>
-                            </div>
-                            <button id="profile-edit-btn" class="profile-action-btn profile-edit-btn" type="button">Редактировать</button>
-                        </div>
-                        <div class="profile-details">
-                            <div class="profile-detail"><span>Почта</span><strong id="profile-email"></strong></div>
-                            <div class="profile-detail"><span>Баланс</span><strong id="profile-coins"></strong></div>
-                            <p id="profile-bio" class="profile-bio"></p>
+                    <div class="profile-workspace">
+                        <nav class="profile-sidebar" aria-label="Разделы профиля">
+                            <button class="profile-sidebar-btn active" type="button" data-profile-section="overview" aria-current="page">Мой профиль</button>
+                            <button class="profile-sidebar-btn" type="button" data-profile-section="friends">Друзья</button>
+                        </nav>
+                        <div class="profile-main">
+                            <section id="profile-section-overview" class="profile-section">
+                                <div class="profile-card">
+                                    <div class="profile-banner">
+                                        <img id="profile-banner-image" alt="">
+                                    </div>
+                                    <div class="profile-identity">
+                                        <div class="profile-avatar">
+                                            <img id="profile-avatar-image" alt="">
+                                            <span id="profile-avatar-fallback"></span>
+                                        </div>
+                                        <div class="profile-identity-info">
+                                            <h2 id="profile-username"></h2>
+                                            <span id="profile-membership" class="profile-membership"></span>
+                                        </div>
+                                        <button id="profile-edit-btn" class="profile-action-btn profile-edit-btn" type="button">Редактировать</button>
+                                    </div>
+                                    <div class="profile-details">
+                                        <div class="profile-detail"><span>Почта</span><strong id="profile-email"></strong></div>
+                                        <div class="profile-detail"><span>Баланс</span><strong id="profile-coins"></strong></div>
+                                        <p id="profile-bio" class="profile-bio"></p>
+                                    </div>
+                                </div>
+                                <form id="profile-edit-form" class="profile-edit-form" style="display: none;">
+                                    <h3>Редактирование профиля</h3>
+                                    <label for="profile-edit-username">Никнейм</label>
+                                    <input id="profile-edit-username" name="username" type="text" minlength="2" maxlength="24" autocomplete="nickname" required>
+                                    <label for="profile-edit-avatar-file">Аватар</label>
+                                    <div class="profile-avatar-file-picker">
+                                        <input id="profile-edit-avatar-file" class="profile-avatar-file-input" name="avatar_file" type="file" accept="image/png,image/jpeg,image/webp">
+                                        <button id="profile-avatar-file-trigger" class="profile-avatar-file-trigger" type="button">Выбрать файл</button>
+                                        <span id="profile-avatar-file-name" class="profile-avatar-file-name" aria-live="polite">Файл не выбран</span>
+                                    </div>
+                                    <label for="profile-edit-bio">О себе</label>
+                                    <textarea id="profile-edit-bio" name="bio" maxlength="160" rows="3"></textarea>
+                                    <label for="profile-edit-accent">Цвет акцента</label>
+                                    <input id="profile-edit-accent" name="accent_color" type="color" value="#9b5cff">
+                                    <p id="profile-edit-message" class="profile-form-message" role="status"></p>
+                                    <div class="profile-form-actions">
+                                        <button class="profile-action-btn profile-secondary-btn" id="profile-cancel-edit" type="button">Отмена</button>
+                                        <button class="profile-action-btn" id="profile-save-btn" type="submit">Сохранить</button>
+                                    </div>
+                                </form>
+                                <button id="profile-sign-out-btn" class="profile-action-btn profile-sign-out-btn" type="button" style="display: none;">Выйти</button>
+                                <p id="profile-load-error" class="profile-form-message" role="alert"></p>
+                            </section>
+                            <section id="profile-section-friends" class="profile-section" style="display: none;">
+                                <div class="social-page">
+                                    <h2 class="section-title">Друзья и чаты</h2>
+                                    <div id="friends-content" class="social-layout" style="display: none;">
+                                        <aside class="social-sidebar">
+                                            <form id="social-search-form" class="social-search-form">
+                                                <label for="social-search-input">Найти пользователя</label>
+                                                <div class="social-search-row">
+                                                    <input id="social-search-input" type="search" minlength="2" maxlength="24" placeholder="Никнейм">
+                                                    <button class="profile-action-btn" type="submit">Найти</button>
+                                                </div>
+                                            </form>
+                                            <p id="social-status" class="profile-form-message" role="status"></p>
+                                            <div id="social-search-results" class="social-list"></div>
+                                            <h3 class="social-list-title">Заявки</h3>
+                                            <div id="social-requests" class="social-list"></div>
+                                            <h3 class="social-list-title">Друзья</h3>
+                                            <div id="social-friends" class="social-list"></div>
+                                        </aside>
+                                        <section class="social-chat">
+                                            <div id="social-chat-empty" class="social-chat-empty">Выберите друга слева, чтобы открыть чат.</div>
+                                            <div id="social-chat-active" class="social-chat-active" style="display: none;">
+                                                <header class="social-chat-header">
+                                                    <div class="social-avatar" id="social-chat-avatar"></div>
+                                                    <div>
+                                                        <strong id="social-chat-username"></strong>
+                                                        <span id="social-chat-presence"></span>
+                                                    </div>
+                                                </header>
+                                                <div id="social-messages" class="social-messages" aria-live="polite"></div>
+                                                <form id="social-message-form" class="social-message-form">
+                                                    <textarea id="social-message-input" maxlength="2000" rows="2" placeholder="Написать сообщение..." aria-label="Текст сообщения"></textarea>
+                                                    <div class="social-message-actions">
+                                                        <span id="social-share-preview" class="social-share-preview"></span>
+                                                        <button id="social-share-current" class="profile-action-btn profile-secondary-btn" type="button">Поделиться серией</button>
+                                                        <button id="social-send-message" class="profile-action-btn" type="submit">Отправить</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    <p id="social-error" class="profile-form-message" role="alert"></p>
+                                </div>
+                            </section>
                         </div>
                     </div>
-                    <form id="profile-edit-form" class="profile-edit-form" style="display: none;">
-                        <h3>Редактирование профиля</h3>
-                        <label for="profile-edit-username">Никнейм</label>
-                        <input id="profile-edit-username" name="username" type="text" minlength="2" maxlength="24" autocomplete="nickname" required>
-                        <label for="profile-edit-avatar-file">Аватар</label>
-                        <div class="profile-avatar-file-picker">
-                            <input id="profile-edit-avatar-file" class="profile-avatar-file-input" name="avatar_file" type="file" accept="image/png,image/jpeg,image/webp">
-                            <button id="profile-avatar-file-trigger" class="profile-avatar-file-trigger" type="button">Выбрать файл</button>
-                            <span id="profile-avatar-file-name" class="profile-avatar-file-name" aria-live="polite">Файл не выбран</span>
-                        </div>
-                        <label for="profile-edit-bio">О себе</label>
-                        <textarea id="profile-edit-bio" name="bio" maxlength="160" rows="3"></textarea>
-                        <label for="profile-edit-accent">Цвет акцента</label>
-                        <input id="profile-edit-accent" name="accent_color" type="color" value="#9b5cff">
-                        <p id="profile-edit-message" class="profile-form-message" role="status"></p>
-                        <div class="profile-form-actions">
-                            <button class="profile-action-btn profile-secondary-btn" id="profile-cancel-edit" type="button">Отмена</button>
-                            <button class="profile-action-btn" id="profile-save-btn" type="submit">Сохранить</button>
-                        </div>
-                    </form>
                 </div>
-                <button id="profile-sign-out-btn" class="profile-action-btn profile-sign-out-btn" type="button" style="display: none;">Выйти</button>
-                <p id="profile-load-error" class="profile-form-message" role="alert"></p>
             </div>
         </section>
     </main>
@@ -475,6 +529,7 @@
     <script src="js/app.catalog.js"></script>
     <script src="js/secure-video-player.js"></script>
     <script src="js/app.player.js"></script>
+    <script src="js/app.social.js"></script>
     <script src="js/app.search.js"></script>
     <script src="js/app.updater.js"></script>
 </body>

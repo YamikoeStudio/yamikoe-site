@@ -3,12 +3,14 @@
 
     var SUPABASE_URL = 'https://uudanseoqlmzygglpyng.supabase.co';
     var SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_tAvRNnIzx32a0gitPrH3rg_94n-spTC';
+    var AUTH_CALLBACK_URL = 'yamikoe://auth/callback';
     var AVATAR_BUCKET = 'avatars';
     var PROFILE_FIELDS = 'id, username, yamikoe_coins, premium_until, accent_color, avatar_url, banner_url, bio, created_at, updated_at';
     var client = null;
     var currentUser = null;
     var currentProfile = null;
     var authSubscription = null;
+    var initializationPromise = null;
 
     function getClient() {
         if (client) return client;
@@ -121,7 +123,8 @@
         }
     }
 
-    async function initialize() {
+    function initialize() {
+        if (initializationPromise) return initializationPromise;
         var supabaseClient = getClient();
         if (!authSubscription) {
             var subscriptionResult = supabaseClient.auth.onAuthStateChange(function (_event, session) {
@@ -133,16 +136,26 @@
             });
             authSubscription = subscriptionResult.data.subscription;
         }
-        var result = await supabaseClient.auth.getSession();
-        if (result.error) throw result.error;
-        return syncSession(result.data.session);
+        initializationPromise = supabaseClient.auth.getSession()
+            .then(function (result) {
+                if (result.error) throw result.error;
+                return syncSession(result.data.session);
+            })
+            .catch(function (error) {
+                initializationPromise = null;
+                throw error;
+            });
+        return initializationPromise;
     }
 
     async function register(username, email, password) {
         var result = await getClient().auth.signUp({
             email: email,
             password: password,
-            options: { data: { username: username } }
+            options: {
+                data: { username: username },
+                emailRedirectTo: AUTH_CALLBACK_URL
+            }
         });
         if (result.error) throw result.error;
         if (result.data.user && Array.isArray(result.data.user.identities) && result.data.user.identities.length === 0) {
@@ -161,6 +174,46 @@
             user: result.data.user,
             requiresEmailConfirmation: !result.data.session
         };
+    }
+
+    async function handleAuthDeepLink(link) {
+        await initialize();
+        var url;
+        try {
+            url = new URL(link);
+        } catch (_error) {
+            throw new Error('Ссылка подтверждения почты некорректна.');
+        }
+        if (url.protocol !== 'yamikoe:' || url.hostname !== 'auth' || url.pathname !== '/callback') {
+            throw new Error('Получена неизвестная ссылка авторизации.');
+        }
+        var authError = url.searchParams.get('error_description') || url.searchParams.get('error');
+        if (authError) throw new Error('Supabase не подтвердил почту: ' + authError);
+
+        var tokenHash = url.searchParams.get('token_hash');
+        var type = url.searchParams.get('type');
+        var code = url.searchParams.get('code');
+        var hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+        var accessToken = url.searchParams.get('access_token') || hashParams.get('access_token');
+        var refreshToken = url.searchParams.get('refresh_token') || hashParams.get('refresh_token');
+        var auth = getClient().auth;
+        var result;
+
+        if (tokenHash && ['signup', 'email', 'magiclink'].includes(type)) {
+            result = await auth.verifyOtp({ token_hash: tokenHash, type: type });
+        } else if (code) {
+            result = await auth.exchangeCodeForSession(code);
+        } else if (accessToken && refreshToken) {
+            result = await auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        } else {
+            throw new Error('В ссылке нет действительного кода подтверждения. Запросите новое письмо.');
+        }
+        if (result.error) throw result.error;
+        if (!result.data.session) {
+            throw new Error('Почта подтверждена, но Supabase не вернул сессию входа.');
+        }
+        await syncSession(result.data.session);
+        return { user: currentUser, profile: currentProfile };
     }
 
     async function signIn(email, password) {
@@ -213,6 +266,7 @@
         getClient: getClient,
         initialize: initialize,
         register: register,
+        handleAuthDeepLink: handleAuthDeepLink,
         signIn: signIn,
         signOut: signOut,
         updateProfile: updateProfile,

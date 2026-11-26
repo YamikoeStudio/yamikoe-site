@@ -18,7 +18,7 @@
         favorites: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>',
         history: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2M4 5v4h4"/></svg>',
         settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 15 .1.1 1.2 1-.9 1.7-1.6-.4a8 8 0 0 1-1.8 1l-.4 1.6h-2l-.4-1.6a8 8 0 0 1-1.8-1l-1.6.4-.9-1.7 1.2-1a7 7 0 0 1 0-2l-1.2-1 .9-1.7 1.6.4a8 8 0 0 1 1.8-1l.4-1.6h2l.4 1.6a8 8 0 0 1 1.8 1l1.6-.4.9 1.7-1.2 1a7 7 0 0 1 0 2Z"/></svg>',
-        profile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'
+        profile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
     };
 
     function makeButton(id, label, mobile) {
@@ -30,15 +30,19 @@
         if (mobile) {
             button.innerHTML = (ICONS[id] || '') + '<span>' + label + '</span>';
             button.addEventListener('click', function () {
-                if (id === 'profile') window.openProfile();
-                else if (id === 'settings') window.openSettings();
+                if (id === 'profile') {
+                    window.openProfile();
+                    if (window.selectProfileSection) window.selectProfileSection('overview');
+                } else if (id === 'settings') window.openSettings();
                 else window.switchTab(id);
             });
         } else {
             button.textContent = label;
             button.addEventListener('click', function () {
-                if (id === 'profile') window.openProfile();
-                else window.switchTab(id);
+                if (id === 'profile') {
+                    window.openProfile();
+                    if (window.selectProfileSection) window.selectProfileSection('overview');
+                } else window.switchTab(id);
             });
         }
         return button;
